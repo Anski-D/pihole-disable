@@ -6,9 +6,8 @@ import argparse
 import requests
 from dotenv import load_dotenv
 
+ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"
-AUTH_PATH = "/auth"
-DNS_PATH = "/dns/blocking"
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,39 +23,52 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def authenticate(_api_pass: str) -> dict[str, Any]:
-    url = f"{URL_API}{AUTH_PATH}"
-    payload = {"password": _api_pass}
+class PiholeDisabler:
+    _sid: str
+    _csrf: str
+    _auth_path = "/auth"
+    _dns_path = "/dns/blocking"
 
-    return json.loads(requests.request("POST", url, json=payload, verify=False).text)
+    def __init__(self, password: str) -> None:
+        self._password = password
+        self.authenticate()
+
+    def authenticate(self) -> None:
+        url = f"{URL_API}{self._auth_path}"
+        payload = {"password": self._password}
+
+        response =  json.loads(requests.request("POST", url, json=payload, verify=False).text)
+        self._sid = response["session"]["sid"]
+        self._csrf = response["session"]["csrf"]
+
+    def disable_blocking(self, period: int) -> dict[str, Any]:
+        url = f"{URL_API}{self._dns_path}"
+        headers = {
+            "X-FTL-SID": self._sid,
+            "X-FTL-CSRF": self._csrf,
+        }
+        payload = {
+            "blocking": False,
+            "timer": 60 * period, # Period in minutes
+        }
+
+        return json.loads(requests.request("POST", url, headers=headers, json=payload, verify=False).text)
+
+    def logout(self) -> None:
+        url = f"{URL_API}{self._auth_path}"
+        headers = {
+            "X-FTL-SID": self._sid,
+            "X-FTL-CSRF": self._csrf,
+        }
+        payload = {}
+
+        requests.request("DELETE", url, headers=headers, data=payload, verify=False)
 
 
-def disable_blocking(_sid: str, period: int) -> dict[str, Any]:
-    url = f"{URL_API}{DNS_PATH}"
-    payload = {
-        "sid": _sid,
-        "blocking": False,
-        "timer": 60 * period, # Period in minutes
-    }
-
-    return json.loads(requests.request("POST", url, json=payload, verify=False).text)
-
-
-def logout(_sid: str) -> None:
-    url = f"{URL_API}{AUTH_PATH}"
-    payload = {"sid": _sid}
-
-    requests.request("DELETE", url, data=payload, verify=False)
-
-
-if __name__ == "__main__":
+def main():
     args = parse_args()
-    load_dotenv(".env")
-    api_pass = os.environ.get("API_PASS")
+    load_dotenv(ENV_FILE)
 
-    response = authenticate(api_pass)
-    sid = response["session"]["sid"]
-
-    disable_blocking(sid, args.period)
-
-    logout(sid)
+    disabler = PiholeDisabler(os.getenv("API_PASSWORD"))
+    disabler.disable_blocking(args.period)
+    disabler.logout()
