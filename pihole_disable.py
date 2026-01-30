@@ -5,6 +5,7 @@ import argparse
 
 import requests
 from dotenv import load_dotenv
+import tornado.web
 
 ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"

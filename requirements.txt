@@ -10,5 +10,7 @@ python-dotenv==1.2.1
     # via -r requirements.in
 requests==2.32.5
     # via -r requirements.in
+tornado==6.5.4
+    # via -r requirements.in
 urllib3==2.6.3
     # via requests
