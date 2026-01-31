@@ -3,6 +3,7 @@ from typing import Any
 import json
 import argparse
 import asyncio
+from abc import ABC
 
 import requests
 from dotenv import load_dotenv
@@ -69,18 +70,15 @@ class PiholeDisabler:
             "timer": response["timer"] or 0,
         }
 
-    def disable_blocking(self, period: int) -> dict[str, Any]:
+    def disable_blocking(self, period: float) -> None:
+        self.authenticate()
         url = f"{URL_API}{self._dns_path}"
-        headers = {
-            "X-FTL-SID": self._sid,
-            "X-FTL-CSRF": self._csrf,
-        }
         payload = {
             "blocking": False,
             "timer": 60 * period, # Period in minutes
         }
 
-        return json.loads(requests.request("POST", url, headers=headers, json=payload, verify=False).text)
+        requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
     def logout(self) -> None:
         if self._is_authenticated():
@@ -96,30 +94,31 @@ class PiholeDisabler:
         return response.status_code != 401 and response.status_code == 200
 
 
-class MainHandler(tornado.web.RequestHandler):
+class Handler(ABC, tornado.web.RequestHandler):
+    _template: str
+    _refresh_period = 0
+
     def initialize(self, _disabler: PiholeDisabler) -> None:
         self._disabler = _disabler
 
     def get(self):
         self.render(
-            "templates/index.html",
+            self._template,
             blocked=self._disabler.check_blocking(),
-            refresh_period=5,
+            refresh_period=self._refresh_period,
         )
 
 
-class InputHandler(tornado.web.RequestHandler):
-    def initialize(self, _disabler: PiholeDisabler) -> None:
-        self._disabler = _disabler
+class MainHandler(Handler):
+    _template = "templates/index.html"
+    _refresh_period = 5
 
-    def get(self) -> None:
-        self.render(
-            "templates/disable.html",
-            refresh_period=0,
-        )
+
+class InputHandler(Handler):
+    _template = "templates/disable.html"
 
     def post(self):
-        if period := _clean_period_value(float(self.get_argument("period"))) > 0:
+        if (period := _clean_period_value(float(self.get_argument("period")))) > 0:
             self._disabler.disable_blocking(period)
 
         self.redirect("/")
