@@ -13,3 +13,4 @@ do
   sleep 1
 done
 echo -e "...done\n"
+exit 0
