@@ -2,6 +2,7 @@ import os
 from typing import Any
 import json
 import argparse
+import asyncio
 
 import requests
 from dotenv import load_dotenv
@@ -66,10 +67,37 @@ class PiholeDisabler:
         requests.request("DELETE", url, headers=headers, data=payload, verify=False)
 
 
-def main():
-    args = parse_args()
-    load_dotenv(ENV_FILE)
+# def main():
+#     args = parse_args()
+#     load_dotenv(ENV_FILE)
+#
+#     disabler = PiholeDisabler(os.getenv("API_PASSWORD"))
+#     disabler.disable_blocking(args.period)
+#     disabler.logout()
 
-    disabler = PiholeDisabler(os.getenv("API_PASSWORD"))
-    disabler.disable_blocking(args.period)
-    disabler.logout()
+
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render(
+            "templates/index.html",
+            refresh_period=5,
+        )
+
+
+def make_app():
+    return tornado.web.Application(
+        [(r"/", MainHandler)],
+        debug=True,
+    )
+
+
+async def main():
+    app = make_app()
+    app.listen(8888)
+    shutdown_event = asyncio.Event()
+
+    await shutdown_event.wait()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
