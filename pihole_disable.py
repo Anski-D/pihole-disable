@@ -3,10 +3,11 @@ import json
 import argparse
 import asyncio
 from abc import ABC
+from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
-import tornado.web
+import tornado.web, tornado.gen
 import urllib3
 
 urllib3.disable_warnings()
@@ -14,6 +15,8 @@ urllib3.disable_warnings()
 ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"
 API_PASSWORD = ""
+STOP_FILE = "STOP"
+SHUTDOWN_CHECK_PERIOD = 10
 
 load_dotenv(ENV_FILE)
 
@@ -144,9 +147,15 @@ def make_app(_disabler: PiholeDisabler) -> tornado.web.Application:
 async def main(_disabler: PiholeDisabler) -> None:
     app = make_app(_disabler)
     app.listen(8888)
-    shutdown_event = asyncio.Event()
 
-    await shutdown_event.wait()
+    await check_shutdown()
+
+
+async def check_shutdown() -> None:
+    while not (stop_file := Path(STOP_FILE)).exists():
+        await tornado.gen.sleep(SHUTDOWN_CHECK_PERIOD)
+
+    stop_file.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
