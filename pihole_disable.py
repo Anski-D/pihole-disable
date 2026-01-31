@@ -10,6 +10,16 @@ import tornado.web
 
 ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"
+API_PASSWORD = ""
+
+load_dotenv(ENV_FILE)
+
+
+def _load_password() -> str:
+    if not (_pass := os.environ.get("API_PASSWORD")):
+        raise KeyError("API password not set")
+
+    return _pass
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,8 +36,8 @@ def parse_args() -> argparse.Namespace:
 
 
 class PiholeDisabler:
-    _sid: str
-    _csrf: str
+    _sid: str = ""
+    _csrf: str = ""
     _auth_path = "/auth"
     _dns_path = "/dns/blocking"
 
@@ -35,13 +45,29 @@ class PiholeDisabler:
         self._password = password
         self.authenticate()
 
-    def authenticate(self) -> None:
-        url = f"{URL_API}{self._auth_path}"
-        payload = {"password": self._password}
+    @property
+    def headers(self) -> dict[str, str]:
+        return {"X-FTL-SID": self._sid, "X-FTL-CSRF": self._csrf}
 
-        response =  json.loads(requests.request("POST", url, json=payload, verify=False).text)
-        self._sid = response["session"]["sid"]
-        self._csrf = response["session"]["csrf"]
+    def authenticate(self) -> None:
+        if not self._is_authenticated():
+            url = f"{URL_API}{self._auth_path}"
+            payload = {"password": self._password}
+
+            response =  json.loads(requests.request("POST", url, json=payload, verify=False).text)
+            self._sid = response["session"]["sid"]
+            self._csrf = response["session"]["csrf"]
+
+    def check_blocking(self) -> dict[str, bool | int]:
+        self.authenticate()
+        url = f"{URL_API}{self._dns_path}"
+
+        response = json.loads(requests.request("GET", url, headers=self.headers, json={}, verify=False).text)
+
+        return {
+            "blocking": response["blocking"] == "enabled",
+            "timer": response["timer"] or 0,
+        }
 
     def disable_blocking(self, period: int) -> dict[str, Any]:
         url = f"{URL_API}{self._dns_path}"
@@ -57,42 +83,42 @@ class PiholeDisabler:
         return json.loads(requests.request("POST", url, headers=headers, json=payload, verify=False).text)
 
     def logout(self) -> None:
+        if self._is_authenticated():
+            url = f"{URL_API}{self._auth_path}"
+
+            requests.request("DELETE", url, headers=self.headers, verify=False)
+
+    def _is_authenticated(self) -> bool:
         url = f"{URL_API}{self._auth_path}"
-        headers = {
-            "X-FTL-SID": self._sid,
-            "X-FTL-CSRF": self._csrf,
-        }
-        payload = {}
 
-        requests.request("DELETE", url, headers=headers, data=payload, verify=False)
+        response = requests.request("GET", url, headers=self.headers, verify=False)
 
-
-# def main():
-#     args = parse_args()
-#     load_dotenv(ENV_FILE)
-#
-#     disabler = PiholeDisabler(os.getenv("API_PASSWORD"))
-#     disabler.disable_blocking(args.period)
-#     disabler.logout()
+        return response.status_code != 401 and response.status_code == 200
 
 
 class MainHandler(tornado.web.RequestHandler):
+    def initialize(self, _disabler: PiholeDisabler) -> None:
+        self._disabler = _disabler
+
     def get(self):
         self.render(
             "templates/index.html",
+            blocked=self._disabler.check_blocking(),
             refresh_period=5,
         )
 
 
-def make_app():
+def make_app(_disabler: PiholeDisabler) -> tornado.web.Application:
     return tornado.web.Application(
-        [(r"/", MainHandler)],
+        [
+            (r"/", MainHandler, dict(_disabler=_disabler)),
+        ],
         debug=True,
     )
 
 
-async def main():
-    app = make_app()
+async def main(_disabler: PiholeDisabler) -> None:
+    app = make_app(_disabler)
     app.listen(8888)
     shutdown_event = asyncio.Event()
 
@@ -100,4 +126,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    API_PASSWORD = _load_password()
+    disabler = PiholeDisabler(API_PASSWORD)
+
+    asyncio.run(main(disabler))
