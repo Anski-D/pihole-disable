@@ -1,5 +1,4 @@
 import os
-from typing import Any
 import json
 import argparse
 import asyncio
@@ -8,6 +7,9 @@ from abc import ABC
 import requests
 from dotenv import load_dotenv
 import tornado.web
+import urllib3
+
+urllib3.disable_warnings()
 
 ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"
@@ -135,6 +137,7 @@ def make_app(_disabler: PiholeDisabler) -> tornado.web.Application:
             (r"/disable", InputHandler, dict(_disabler=_disabler)),
         ],
         debug=True,
+        static_path="static",
     )
 
 
@@ -153,4 +156,6 @@ if __name__ == "__main__":
     try:
         asyncio.run(main(disabler))
     except KeyboardInterrupt:
+        disabler.logout()
+    else:
         disabler.logout()
