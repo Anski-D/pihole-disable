@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Pihole disabler</title>
-    {% if refresh_period %}<meta http-equiv="Refresh" content="{{ refresh_period }}" />{% end %}
+    {% if refresh_period > 0 %}<meta http-equiv="Refresh" content="{{ refresh_period }}" />{% end %}
 </head>
 <body>
     {% block page_content %}{% end %}

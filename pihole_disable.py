@@ -108,10 +108,32 @@ class MainHandler(tornado.web.RequestHandler):
         )
 
 
+class InputHandler(tornado.web.RequestHandler):
+    def initialize(self, _disabler: PiholeDisabler) -> None:
+        self._disabler = _disabler
+
+    def get(self) -> None:
+        self.render(
+            "templates/disable.html",
+            refresh_period=0,
+        )
+
+    def post(self):
+        if period := _clean_period_value(float(self.get_argument("period"))) > 0:
+            self._disabler.disable_blocking(period)
+
+        self.redirect("/")
+
+
+def _clean_period_value(period: float) -> float:
+    return max(0, period)
+
+
 def make_app(_disabler: PiholeDisabler) -> tornado.web.Application:
     return tornado.web.Application(
         [
             (r"/", MainHandler, dict(_disabler=_disabler)),
+            (r"/disable", InputHandler, dict(_disabler=_disabler)),
         ],
         debug=True,
     )
@@ -129,4 +151,7 @@ if __name__ == "__main__":
     API_PASSWORD = _load_password()
     disabler = PiholeDisabler(API_PASSWORD)
 
-    asyncio.run(main(disabler))
+    try:
+        asyncio.run(main(disabler))
+    except KeyboardInterrupt:
+        disabler.logout()
