@@ -5,7 +5,16 @@ echo -e "\n======================"
 echo "=== PIHOLE_DISABLE ==="
 echo "======================"
 
+if [ -f STOP ]
+then
+  echo "Removing existing STOP file"
+  rm STOP
+fi
+
 echo "Activating Python environment"
 source .venv/bin/activate
 echo "Starting script"
-python "$APP" > .pihole_disable.log 2> .pihole_disable.err
+python "$APP" > .pihole_disable.log 2> .pihole_disable.err &
+echo "Script running in background"
+echo -e "Use ./stop_pihole_disable.sh to terminate\n"
+exit 0
