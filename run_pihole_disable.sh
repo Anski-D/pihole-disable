@@ -14,7 +14,7 @@ fi
 echo "Activating Python environment"
 source .venv/bin/activate
 echo "Starting script"
-nohup python "$APP" > .pihole_disable.log 2> .pihole_disable.err &
+python "$APP" > .pihole_disable.log 2> .pihole_disable.err &
 echo "Script running in background"
 echo -e "Use ./stop_pihole_disable.sh to terminate\n"
 exit 0
