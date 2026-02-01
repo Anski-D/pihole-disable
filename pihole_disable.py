@@ -4,7 +4,6 @@ import argparse
 import asyncio
 from abc import ABC
 from pathlib import Path
-from unittest import case
 
 import requests
 from dotenv import load_dotenv
