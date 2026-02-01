@@ -4,6 +4,7 @@ import argparse
 import asyncio
 from abc import ABC
 from pathlib import Path
+from unittest import case
 
 import requests
 from dotenv import load_dotenv
@@ -85,6 +86,15 @@ class PiholeDisabler:
 
         requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
+    def enable_blocking(self) -> None:
+        self.authenticate()
+        url = f"{URL_API}{self._dns_path}"
+        payload = {
+            "blocking": True,
+        }
+
+        requests.request("POST", url, headers=self.headers, json=payload, verify=False)
+
     def logout(self) -> None:
         if self._is_authenticated():
             url = f"{URL_API}{self._auth_path}"
@@ -106,7 +116,7 @@ class Handler(ABC, tornado.web.RequestHandler):
     def initialize(self, _disabler: PiholeDisabler) -> None:
         self._disabler = _disabler
 
-    def get(self):
+    def get(self) -> None:
         self.render(
             self._template,
             blocked=self._disabler.check_blocking(),
@@ -120,10 +130,17 @@ class MainHandler(Handler):
 
 
 class InputHandler(Handler):
-    _template = "templates/disable.html"
+    _template = "templates/do.html"
 
-    def post(self):
-        if (period := _clean_period_value(float(self.get_argument("period")))) > 0:
+    def get(self, command: str | None = None) -> None:
+        if command is not None and command.lower() == "enable":
+            self._disabler.enable_blocking()
+            self.redirect("/")
+        else:
+            super().get()
+
+    def post(self, command: str) -> None:
+        if command.lower() == "disable" and (period := _clean_period_value(float(self.get_argument("period")))) > 0:
             self._disabler.disable_blocking(period)
 
         self.redirect("/")
@@ -137,7 +154,8 @@ def make_app(_disabler: PiholeDisabler) -> tornado.web.Application:
     return tornado.web.Application(
         [
             (r"/", MainHandler, dict(_disabler=_disabler)),
-            (r"/disable", InputHandler, dict(_disabler=_disabler)),
+            (r"/do", InputHandler, dict(_disabler=_disabler)),
+            (r"/do/(.*)", InputHandler, dict(_disabler=_disabler)),
         ],
         debug=True,
         static_path="static",
