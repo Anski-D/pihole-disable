@@ -4,7 +4,7 @@ html {
     color: white;
 }
 body {
-    margin: 0 auto;
+    margin: 0;
     text-align: center;
     display: grid;
     grid-template-rows: 0.5fr 3fr 0.5fr;
