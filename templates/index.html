@@ -1,4 +1,6 @@
 {% extends "base.html" %}
 {% block page_content %}
-    <p>Status: {{ "ENABLED" if blocked["blocking"] else "DISABLED" }}{{ f" for {round(blocked["timer"])} seconds" if blocked["timer"] > 0 else "" }}</p>
+    <section id="status">
+        <p><strong>Status:</strong> <span id="{{ 'enabled' if blocked['blocking'] else 'disabled' }}">{{ "ENABLED" if blocked["blocking"] else "DISABLED" }}</span>{{ f" for {round(blocked["timer"])} seconds" if blocked["timer"] > 0 else "" }}</p>
+    </section>
 {% end %}

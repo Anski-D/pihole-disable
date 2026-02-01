@@ -1,0 +1,92 @@
+html {
+    font-family: Helvetica, sans-serif;
+    background: black;
+    color: white;
+}
+body {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+h1 {
+    text-transform: uppercase;
+    font-size: 4rem;
+    border: 2px solid white;
+    margin: 0;
+    padding: 0.5em;
+}
+nav menu {
+    list-style: none;
+    margin: 0;
+    padding: 2em;
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+}
+nav menu > li {
+    display: contents;
+}
+nav menu > li > a {
+    text-transform: uppercase;
+    font-weight: bold;
+    text-decoration: none;
+    alignment-baseline: middle;
+    padding: 3rem;
+    color: black;
+    font-size: 10vh;
+    &#link-status {
+        background: white;
+    }
+    &#link-enable {
+        background: green;
+    }
+    &#link-disable {
+        background: red;
+    }
+    &:hover {
+        outline: 1rem solid purple;
+    }
+}
+#status {
+    background: white;
+    color: black;
+}
+#status > p {
+    font-size: 2em;
+    padding: 0.5em;
+    margin: 0;
+    & > #enabled {
+        color: green;
+    }
+    & > #disabled {
+        color: red;
+    }
+}
+form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em;
+    margin: 0;
+    font-size: 2em;
+    border: 2px solid white;
+    & > input#period, input#submit {
+        font-size: 1em;
+        background: white;
+        color: black;
+        border: none;
+    }
+    & > input#submit {
+        padding: 0.25em;
+        text-transform: uppercase;
+        font-weight: bold;
+        &:hover {
+            outline: 0.25em solid purple;
+        }
+    }
+    & > input#period {
+        width: 4em;
+    }
+}
