@@ -6,6 +6,12 @@ echo -e "\n======================"
 echo "=== PIHOLE_DISABLE ==="
 echo "======================"
 
+if [ -z "$PORT" ]
+then
+  echo -e "ERROR - port not provided\n"
+  exit 1
+fi
+
 if [ -f STOP ]
 then
   echo "Removing existing STOP file"
