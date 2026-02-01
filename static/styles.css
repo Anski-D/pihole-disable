@@ -5,34 +5,38 @@ html {
 }
 body {
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
     text-align: center;
+    display: grid;
+    grid-template-rows: 0.5fr 3fr 0.5fr;
+    height: 100vh;
+}
+header {
+    align-content: center;
+    border: 2px solid white;
 }
 h1 {
     text-transform: uppercase;
-    font-size: 4rem;
-    border: 2px solid white;
+    font-size: 5vh;
     margin: 0;
-    padding: 0.5em;
 }
 nav menu {
     list-style: none;
     margin: 0;
     padding: 2em;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
     gap: 2em;
+    height: 100%;
+    box-sizing: border-box;
 }
 nav menu > li {
     display: contents;
 }
 nav menu > li > a {
+    align-content: center;
     text-transform: uppercase;
     font-weight: bold;
     text-decoration: none;
-    alignment-baseline: middle;
-    padding: 3rem;
     color: black;
     font-size: 10vh;
     &#link-status {
@@ -45,22 +49,24 @@ nav menu > li > a {
         background: red;
     }
     &:hover {
-        outline: 1rem solid purple;
+        outline: 1rem solid gray;
     }
 }
 #status {
     background: white;
     color: black;
+    align-content: center;
 }
 #status > p {
-    font-size: 2em;
-    padding: 0.5em;
+    font-size: 5vh;
     margin: 0;
     & > #enabled {
         color: green;
+        text-transform: uppercase;
     }
     & > #disabled {
         color: red;
+        text-transform: uppercase;
     }
 }
 form {
@@ -68,9 +74,8 @@ form {
     justify-content: center;
     align-items: center;
     gap: 0.5em;
-    padding: 0.5em;
     margin: 0;
-    font-size: 2em;
+    font-size: 5vh;
     border: 2px solid white;
     & > input#period, input#submit {
         font-size: 1em;
@@ -83,7 +88,7 @@ form {
         text-transform: uppercase;
         font-weight: bold;
         &:hover {
-            outline: 0.25em solid purple;
+            outline: 0.25em solid gray;
         }
     }
     & > input#period {
