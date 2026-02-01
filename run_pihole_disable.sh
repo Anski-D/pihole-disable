@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 APP=$PWD/pihole_disable.py
+PORT=$1
 
 echo -e "\n======================"
 echo "=== PIHOLE_DISABLE ==="
@@ -14,7 +15,7 @@ fi
 echo "Activating Python environment"
 source .venv/bin/activate
 echo "Starting script"
-python "$APP" > .pihole_disable.log 2> .pihole_disable.err &
-echo "Script running in background"
-echo -e "Use ./stop_pihole_disable.sh to terminate\n"
+python "$APP" "$1" > .pihole_disable.log 2> .pihole_disable.err &
+echo "Running $APP on port $1"
+echo -e "Use $PWD/stop_pihole_disable.sh to terminate\n"
 exit 0

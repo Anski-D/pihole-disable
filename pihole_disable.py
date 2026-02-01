@@ -17,6 +17,7 @@ URL_API = "https://pihole.dacyho.me/api"
 API_PASSWORD = ""
 STOP_FILE = "STOP"
 SHUTDOWN_CHECK_PERIOD = 10
+DEBUG = False
 
 load_dotenv(ENV_FILE)
 
@@ -30,13 +31,8 @@ def _load_password() -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "period",
-        nargs="?",
-        type=int,
-        default=1,
-        help="how many minutes to disable Pihole",
-    )
+    parser.add_argument("port", type=int, help="port to listen on")
+    parser.add_argument("--debug", "-d", action="store_true", help="enable debug mode")
 
     return parser.parse_args()
 
@@ -156,14 +152,14 @@ def make_app(_disabler: PiholeDisabler) -> tornado.web.Application:
             (r"/do", InputHandler, dict(_disabler=_disabler)),
             (r"/do/(.*)", InputHandler, dict(_disabler=_disabler)),
         ],
-        debug=True,
+        debug=DEBUG,
         static_path="static",
     )
 
 
-async def main(_disabler: PiholeDisabler) -> None:
+async def main(port:int, _disabler: PiholeDisabler) -> None:
     app = make_app(_disabler)
-    app.listen(8888)
+    app.listen(port)
 
     await check_shutdown()
 
@@ -176,11 +172,13 @@ async def check_shutdown() -> None:
 
 
 if __name__ == "__main__":
+    args = parse_args()
+    DEBUG = args.debug
     API_PASSWORD = _load_password()
     disabler = PiholeDisabler(API_PASSWORD)
 
     try:
-        asyncio.run(main(disabler))
+        asyncio.run(main(args.port, disabler))
     except KeyboardInterrupt:
         disabler.logout()
     else:
