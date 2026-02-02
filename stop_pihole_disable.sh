@@ -5,8 +5,15 @@ echo -e "\n======================"
 echo "=== PIHOLE_DISABLE ==="
 echo "======================"
 
-echo "Creating STOP file"
-touch STOP
+echo "Creating STOP file..."
+if [[ $(touch STOP) -eq 0 ]]
+then
+  echo "...done"
+else
+  echo "ERROR - STOP file not created"
+  exit 1
+fi
+
 echo "Waiting for Python script to stop..."
 while [ -z $(pgrep -f "$APP") ]
 do
