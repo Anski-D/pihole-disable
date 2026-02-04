@@ -24,7 +24,12 @@ nav menu {
     margin: 0;
     padding: 2em;
     display: grid;
-    grid-template-rows: repeat(3, 1fr);
+    @media (orientation: portrait) {
+        grid-template-rows: repeat(3, 1fr);
+    }
+    @media (orientation: landscape) {
+        grid-template-columns: repeat(3, 1fr);
+    }
     gap: 2em;
     height: 100%;
     box-sizing: border-box;
