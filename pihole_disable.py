@@ -14,19 +14,12 @@ urllib3.disable_warnings()
 
 ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"
-API_PASSWORD = ""
 STOP_FILE = "STOP"
 SHUTDOWN_CHECK_PERIOD = 10
 DEBUG = False
 
 load_dotenv(ENV_FILE)
-
-
-def _load_password() -> str:
-    if not (_pass := os.environ.get("API_PASSWORD")):
-        raise KeyError("API password not set")
-
-    return _pass
+API_PASSWORD = os.environ["API_PASSWORD"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -174,7 +167,6 @@ async def check_shutdown() -> None:
 if __name__ == "__main__":
     args = parse_args()
     DEBUG = args.debug
-    API_PASSWORD = _load_password()
     disabler = PiholeDisabler(API_PASSWORD)
 
     try:
