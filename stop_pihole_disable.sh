@@ -15,7 +15,7 @@ else
 fi
 
 echo "Waiting for Python script to stop..."
-while [ -z $(pgrep -f "$APP") ]
+while [[ -n $(pgrep -f "$APP") ]]
 do
   sleep 1
 done
