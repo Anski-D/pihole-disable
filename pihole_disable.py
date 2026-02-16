@@ -93,7 +93,7 @@ class PiholeDisabler:
 
         response = requests.request("GET", url, headers=self.headers, verify=False)
 
-        return response.status_code != 401 and response.status_code == 200
+        return response.status_code == 200
 
 
 class MainHandler(tornado.web.RequestHandler):
