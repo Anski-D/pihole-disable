@@ -3,6 +3,7 @@ import json
 import argparse
 import asyncio
 from pathlib import Path
+from functools import wraps
 
 import requests
 from dotenv import load_dotenv
@@ -29,6 +30,24 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def is_authenticated(func):
+    @wraps(func)
+    def check_auth(self, *args, **kwargs):
+        url = f"{URL_API}{self._auth_path}"
+
+        response = requests.request("GET", url, headers=self.headers, verify=False)
+
+        if response.status_code != 200:
+            payload = {"password": self._password}
+            response =  json.loads(requests.request("POST", url, json=payload, verify=False).text)
+            self._sid = response["session"]["sid"]
+            self._csrf = response["session"]["csrf"]
+
+        return func(self, *args, **kwargs)
+
+    return check_auth
+
+
 class PiholeDisabler:
     _sid: str = ""
     _csrf: str = ""
@@ -37,23 +56,13 @@ class PiholeDisabler:
 
     def __init__(self, password: str) -> None:
         self._password = password
-        self.authenticate()
 
     @property
     def headers(self) -> dict[str, str]:
         return {"X-FTL-SID": self._sid, "X-FTL-CSRF": self._csrf}
 
-    def authenticate(self) -> None:
-        if not self._is_authenticated():
-            url = f"{URL_API}{self._auth_path}"
-            payload = {"password": self._password}
-
-            response =  json.loads(requests.request("POST", url, json=payload, verify=False).text)
-            self._sid = response["session"]["sid"]
-            self._csrf = response["session"]["csrf"]
-
+    @is_authenticated
     def check_blocking(self) -> dict[str, bool | int]:
-        self.authenticate()
         url = f"{URL_API}{self._dns_path}"
 
         response = json.loads(requests.request("GET", url, headers=self.headers, json={}, verify=False).text)
@@ -63,8 +72,8 @@ class PiholeDisabler:
             "timer": response["timer"] or 0,
         }
 
+    @is_authenticated
     def disable_blocking(self, period: float) -> None:
-        self.authenticate()
         url = f"{URL_API}{self._dns_path}"
         payload = {
             "blocking": False,
@@ -73,8 +82,8 @@ class PiholeDisabler:
 
         requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
+    @is_authenticated
     def enable_blocking(self) -> None:
-        self.authenticate()
         url = f"{URL_API}{self._dns_path}"
         payload = {
             "blocking": True,
@@ -82,18 +91,11 @@ class PiholeDisabler:
 
         requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
+    @is_authenticated
     def logout(self) -> None:
-        if self._is_authenticated():
-            url = f"{URL_API}{self._auth_path}"
-
-            requests.request("DELETE", url, headers=self.headers, verify=False)
-
-    def _is_authenticated(self) -> bool:
         url = f"{URL_API}{self._auth_path}"
 
-        response = requests.request("GET", url, headers=self.headers, verify=False)
-
-        return response.status_code == 200
+        requests.request("DELETE", url, headers=self.headers, verify=False)
 
 
 class MainHandler(tornado.web.RequestHandler):
