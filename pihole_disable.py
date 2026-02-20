@@ -30,18 +30,14 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def is_authenticated(func):
+def requires_auth(func):
     @wraps(func)
     def check_auth(self, *args, **kwargs):
         url = f"{URL_API}{self._auth_path}"
-
         response = requests.request("GET", url, headers=self.headers, verify=False)
 
         if response.status_code != 200:
-            payload = {"password": self._password}
-            response =  json.loads(requests.request("POST", url, json=payload, verify=False).text)
-            self._sid = response["session"]["sid"]
-            self._csrf = response["session"]["csrf"]
+            self.authenticate()
 
         return func(self, *args, **kwargs)
 
@@ -56,12 +52,20 @@ class PiholeDisabler:
 
     def __init__(self, password: str) -> None:
         self._password = password
+        self.authenticate()
 
     @property
     def headers(self) -> dict[str, str]:
         return {"X-FTL-SID": self._sid, "X-FTL-CSRF": self._csrf}
 
-    @is_authenticated
+    def authenticate(self) -> None:
+        url = f"{URL_API}{self._auth_path}"
+        payload = {"password": self._password}
+        response = json.loads(requests.request("POST", url, json=payload, verify=False).text)
+        self._sid = response["session"]["sid"]
+        self._csrf = response["session"]["csrf"]
+
+    @requires_auth
     def check_blocking(self) -> dict[str, bool | int]:
         url = f"{URL_API}{self._dns_path}"
 
@@ -72,7 +76,7 @@ class PiholeDisabler:
             "timer": response["timer"] or 0,
         }
 
-    @is_authenticated
+    @requires_auth
     def disable_blocking(self, period: float) -> None:
         url = f"{URL_API}{self._dns_path}"
         payload = {
@@ -82,7 +86,7 @@ class PiholeDisabler:
 
         requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
-    @is_authenticated
+    @requires_auth
     def enable_blocking(self) -> None:
         url = f"{URL_API}{self._dns_path}"
         payload = {
@@ -91,7 +95,7 @@ class PiholeDisabler:
 
         requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
-    @is_authenticated
+    @requires_auth
     def logout(self) -> None:
         url = f"{URL_API}{self._auth_path}"
 
