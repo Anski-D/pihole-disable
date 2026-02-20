@@ -113,7 +113,6 @@ class MainHandler(tornado.web.RequestHandler):
         match command:
             case "enable":
                 self._disabler.enable_blocking()
-                self.redirect("/")
             case "disable":
                 template = "templates/disable.html"
                 refresh_period = 0
