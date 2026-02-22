@@ -32,14 +32,14 @@ def parse_args() -> argparse.Namespace:
 
 def requires_auth(func):
     @wraps(func)
-    def check_auth(self, *args, **kwargs):
-        url = f"{URL_API}{self._auth_path}"
-        response = requests.request("GET", url, headers=self.headers, verify=False)
+    def check_auth(obj, *args, **kwargs):
+        url = f"{URL_API}{obj._auth_path}"
+        response = requests.request("GET", url, headers=obj.headers, verify=False)
 
         if response.status_code != 200:
-            self.authenticate()
+            obj.authenticate()
 
-        return func(self, *args, **kwargs)
+        return func(obj, *args, **kwargs)
 
     return check_auth
 
