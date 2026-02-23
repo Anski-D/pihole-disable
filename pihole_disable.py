@@ -33,10 +33,7 @@ def parse_args() -> argparse.Namespace:
 def requires_auth(func):
     @wraps(func)
     def check_auth(obj, *args, **kwargs):
-        url = f"{URL_API}{obj._auth_path}"
-        response = requests.request("GET", url, headers=obj.headers, verify=False)
-
-        if response.status_code != 200:
+        if not obj.is_authenticated:
             obj.authenticate()
 
         return func(obj, *args, **kwargs)
@@ -57,6 +54,13 @@ class PiholeDisabler:
     @property
     def headers(self) -> dict[str, str]:
         return {"X-FTL-SID": self._sid, "X-FTL-CSRF": self._csrf}
+
+    @property
+    def is_authenticated(self) -> bool:
+        url = f"{URL_API}{self._auth_path}"
+        response = requests.request("GET", url, headers=self.headers, verify=False)
+
+        return response.status_code == 200
 
     def authenticate(self) -> None:
         url = f"{URL_API}{self._auth_path}"
