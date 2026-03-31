@@ -10,13 +10,13 @@
     <header>
         <h1>Pihole disabler</h1>
     </header>
-    <nav>
-        <menu>
+    {%  block page_nav %}<nav>
+        <menu id="menu-main">
             <li><a href="/" id="link-status">Status</a></li>
             <li><a href="/enable" id="link-enable">Enable</a></li>
             <li><a href="/disable" id="link-disable">Disable</a></li>
         </menu>
-    </nav>
+    </nav>{% end %}
     {% block page_content %}{% end %}
 </body>
 </html>

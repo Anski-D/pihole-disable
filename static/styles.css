@@ -24,15 +24,27 @@ nav menu {
     margin: 0;
     padding: 2em;
     display: grid;
-    @media (orientation: portrait) {
-        grid-template-rows: repeat(3, 1fr);
-    }
-    @media (orientation: landscape) {
-        grid-template-columns: repeat(3, 1fr);
-    }
     gap: 2em;
     height: 100%;
     box-sizing: border-box;
+    &#menu-main {
+        @media (orientation: portrait) {
+            grid-template-rows: repeat(3, 1fr);
+        }
+        @media (orientation: landscape) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    &#menu-disable {
+        padding: 0;
+        gap: 1em;
+        @media (orientation: portrait) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        @media (orientation: landscape) {
+            grid-template-rows: repeat(3, 1fr);
+        }
+    }
 }
 nav menu > li {
     display: contents;
@@ -56,6 +68,10 @@ nav menu > li > a {
     &:hover {
         outline: 1rem solid gray;
     }
+}
+nav menu#menu-disable > li > a {
+    line-height: 10vh;
+    font-size: 5vh;
 }
 #status {
     background: white;
