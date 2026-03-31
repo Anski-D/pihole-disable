@@ -90,6 +90,10 @@ class PiholeDisabler:
 
         requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
+    def increase_disable_period(self, period: float) -> None:
+        current_status = self.check_blocking()
+        self.disable_blocking(current_status["timer"] + period)
+
     @requires_auth
     def enable_blocking(self) -> None:
         url = f"{URL_API}{self._dns_path}"
