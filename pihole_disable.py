@@ -92,7 +92,7 @@ class PiholeDisabler:
 
     def increase_disable_period(self, period: float) -> None:
         current_status = self.check_blocking()
-        self.disable_blocking(current_status["timer"] + period)
+        self.disable_blocking(current_status["timer"]/60 + period)
 
     @requires_auth
     def enable_blocking(self) -> None:
@@ -117,13 +117,19 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self, command: str | None = None) -> None:
         template = "templates/index.html"
         refresh_period = 5
-        command = command.lower()
-        match command:
-            case "enable":
-                self._disabler.enable_blocking()
-            case "disable":
-                template = "templates/disable.html"
-                refresh_period = 0
+
+        if command is not None:
+            command: str = command.lower()
+            match command:
+                case "enable":
+                    self._disabler.enable_blocking()
+                case "disable":
+                    template = "templates/disable.html"
+                    refresh_period = 0
+                case s if s.startswith("disable"):
+                    _, period = s.split("/")
+                    if period.isdigit():
+                        self._disabler.increase_disable_period(_clean_period_value(int(period)))
 
         self.render(
             template,
