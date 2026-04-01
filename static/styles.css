@@ -72,6 +72,9 @@ nav menu > li > a {
 nav menu#menu-disable > li > a {
     line-height: 10vh;
     font-size: 5vh;
+    &:hover {
+        outline: 0.5rem solid gray;
+    }
 }
 #status {
     background: white;

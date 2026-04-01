@@ -131,6 +131,10 @@ class MainHandler(tornado.web.RequestHandler):
                     if period.isdigit():
                         self._disabler.increase_disable_period(_clean_period_value(int(period)))
 
+                    self.redirect("/")
+
+                    return
+
         self.render(
             template,
             blocked=self._disabler.check_blocking(),
