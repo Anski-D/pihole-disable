@@ -1,16 +1,10 @@
 import os
 import json
 import argparse
-import asyncio
-from pathlib import Path
 from functools import wraps
 
 import requests
 from dotenv import load_dotenv
-import tornado.web, tornado.gen
-import urllib3
-
-urllib3.disable_warnings()
 
 ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"
