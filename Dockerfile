@@ -50,4 +50,4 @@ COPY . .
 EXPOSE 8888
 
 # Run the application.
-CMD ["python", "pihole_disable.py", "8888"]
+CMD ["gunicorn", "app:app", "--bind", "127.0.0.1:8888"]
