@@ -50,4 +50,4 @@ COPY . .
 EXPOSE 8888
 
 # Run the application.
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:8888"]
+CMD ["gunicorn", "app:app", "-b", "0.0.0.0:8888"]
