@@ -1,5 +1,4 @@
 requests
 python-dotenv
-tornado
 Flask
 gunicorn
