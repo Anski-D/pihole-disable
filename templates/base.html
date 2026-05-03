@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Pihole disabler</title>
-    {% if refresh_period > 0 %}<meta http-equiv="Refresh" content="{{ refresh_period }}" />{% end %}
+    {% if refresh_period > 0 %}<meta http-equiv="Refresh" content="{{ refresh_period }}" />{% endif %}
     <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
@@ -12,11 +12,11 @@
     </header>
     {%  block page_nav %}<nav>
         <menu id="menu-main">
-            <li><a href="/" id="link-status">Status</a></li>
-            <li><a href="/enable" id="link-enable">Enable</a></li>
-            <li><a href="/disable" id="link-disable">Disable</a></li>
+            <li><a href={{ url_for("index") }} id="link-status">Status</a></li>
+            <li><a href={{ url_for("enable") }} id="link-enable">Enable</a></li>
+            <li><a href={{ url_for("disable") }} id="link-disable">Disable</a></li>
         </menu>
-    </nav>{% end %}
-    {% block page_content %}{% end %}
+    </nav>{% endblock %}
+    {% block page_content %}{% endblock %}
 </body>
 </html>
