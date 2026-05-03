@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-APP=$PWD/pihole_disable.py
+APP=$PWD/app.py
 
 echo -e "\n======================"
 echo "=== PIHOLE_DISABLE ==="

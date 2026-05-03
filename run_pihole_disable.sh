@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-APP=$PWD/pihole_disable.py
+APP=$PWD/app.py
 PORT=$1
+FLASK_DEBUG=1
+export FLASK_DEBUG
 
 echo -e "\n======================"
 echo "=== PIHOLE_DISABLE ==="
@@ -21,7 +23,15 @@ fi
 echo "Activating Python environment"
 source .venv/bin/activate
 echo "Starting script"
-python "$APP" "$1" > .pihole_disable.log 2> .pihole_disable.err &
-echo "Running $APP on port $1"
+gunicorn app:app --bind 127.0.0.1:"$PORT" > .pihole_disable.log 2> .pihole_disable.err &
+PID=$!
+echo "Running $APP on port $PORT under process $PID"
 echo -e "Use $PWD/stop_pihole_disable.sh to terminate\n"
+
+while [ ! -f STOP ]
+do
+  sleep 1
+done
+kill $PID
+
 exit 0
