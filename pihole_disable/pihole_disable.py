@@ -1,33 +1,21 @@
-import os
 import json
-import argparse
 from functools import wraps
+import logging
 
 import requests
-from dotenv import load_dotenv
+import urllib3
 
-ENV_FILE = ".env"
 URL_API = "https://pihole.dacyho.me/api"
-STOP_FILE = "STOP"
-SHUTDOWN_CHECK_PERIOD = 10
-DEBUG = False
 
-load_dotenv(ENV_FILE)
-API_PASSWORD = os.environ["API_PASSWORD"]
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("port", type=int, help="port to listen on")
-    parser.add_argument("--debug", "-d", action="store_true", help="enable debug mode")
-
-    return parser.parse_args()
+log = logging.getLogger("__main__." + __name__)
+urllib3.disable_warnings()
 
 
 def requires_auth(func):
     @wraps(func)
     def check_auth(obj, *args, **kwargs):
         if not obj.is_authenticated:
+            log.info("%s not authenticated", obj)
             obj.authenticate()
 
         return func(obj, *args, **kwargs)
@@ -36,14 +24,18 @@ def requires_auth(func):
 
 
 class PiholeDisabler:
-    _sid: str = ""
-    _csrf: str = ""
     _auth_path = "/auth"
     _dns_path = "/dns/blocking"
 
     def __init__(self, password: str) -> None:
         self._password = password
+        log.info("Created %s", self)
+        self._sid = ""
+        self._csrf = ""
         self.authenticate()
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({type(self._password).__name__})"
 
     @property
     def headers(self) -> dict[str, str]:
@@ -57,6 +49,7 @@ class PiholeDisabler:
         return response.status_code == 200
 
     def authenticate(self) -> None:
+        log.info("Authenticating %s with Pihole API", self)
         url = f"{URL_API}{self._auth_path}"
         payload = {"password": self._password}
         response = json.loads(requests.request("POST", url, json=payload, verify=False).text)
@@ -65,6 +58,7 @@ class PiholeDisabler:
 
     @requires_auth
     def check_blocking(self) -> dict[str, bool | int]:
+        log.debug("Checking blocking status")
         url = f"{URL_API}{self._dns_path}"
 
         response = json.loads(requests.request("GET", url, headers=self.headers, json={}, verify=False).text)
@@ -76,20 +70,27 @@ class PiholeDisabler:
 
     @requires_auth
     def disable_blocking(self, period: float) -> None:
+        log.info("Disabling blocking for %s minutes", round(period))
         url = f"{URL_API}{self._dns_path}"
         payload = {
             "blocking": False,
-            "timer": 60 * period, # Period in minutes
+            "timer": 60 * period, # Period in minutes converted to seconds
         }
 
         requests.request("POST", url, headers=self.headers, json=payload, verify=False)
 
     def increase_disable_period(self, period: float) -> None:
         current_status = self.check_blocking()
-        self.disable_blocking(current_status["timer"]/60 + period)
+        log.info(
+            "Increasing disable period from %s to %s minutes",
+            round(current_status["timer"] / 60),
+            round(current_status["timer"] / 60 + period),
+        )
+        self.disable_blocking(current_status["timer"] / 60 + period)
 
     @requires_auth
     def enable_blocking(self) -> None:
+        log.info("Enabling blocking")
         url = f"{URL_API}{self._dns_path}"
         payload = {
             "blocking": True,
@@ -99,6 +100,7 @@ class PiholeDisabler:
 
     @requires_auth
     def logout(self) -> None:
+        log.info("Logging out of Pihole API")
         url = f"{URL_API}{self._auth_path}"
 
         requests.request("DELETE", url, headers=self.headers, verify=False)
