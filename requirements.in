@@ -1,4 +1,5 @@
 requests
 python-dotenv
-Flask
+flask
 gunicorn
+pyyaml
