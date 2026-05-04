@@ -1,37 +1,23 @@
 #!/usr/bin/env bash
+LOG=.pihole_disable.log
 APP=$PWD/app.py
 PORT=$1
-FLASK_DEBUG=1
-export FLASK_DEBUG
 
-echo -e "\n======================"
-echo "=== PIHOLE_DISABLE ==="
-echo "======================"
+echo -e "\n======================" | tee $LOG
+echo "=== PIHOLE_DISABLE ===" | tee -a $LOG
+echo "======================" | tee -a $LOG
 
 if [ -z "$PORT" ]
 then
-  echo -e "ERROR - port not provided\n"
+  echo -e "ERROR - port not provided\n" | tee -a $LOG
   exit 1
 fi
 
-if [ -f STOP ]
-then
-  echo "Removing existing STOP file"
-  rm STOP
-fi
-
-echo "Activating Python environment"
+echo "Activating Python environment" | tee -a $LOG
 source .venv/bin/activate
-echo "Starting script"
-gunicorn app:app --bind 127.0.0.1:"$PORT" > .pihole_disable.log 2> .pihole_disable.err &
-PID=$!
-echo "Running $APP on port $PORT under process $PID"
-echo -e "Use $PWD/stop_pihole_disable.sh to terminate\n"
-
-while [ ! -f STOP ]
-do
-  sleep 1
-done
-kill $PID
+echo "Starting script" | tee -a $LOG
+gunicorn app:app -b 127.0.0.1:"$PORT" -p .pid >> .pihole_disable.log 2>&1 &
+echo "Running $APP on port $PORT under process $!" | tee -a $LOG
+echo -e "Use $PWD/stop_pihole_disable.sh to terminate\n" | tee -a $LOG
 
 exit 0

@@ -1,23 +1,28 @@
 #!/usr/bin/env bash
-APP=$PWD/app.py
+LOG=.pihole_disable.log
+PID_FILE=.pid
 
-echo -e "\n======================"
-echo "=== PIHOLE_DISABLE ==="
-echo "======================"
+echo -e "\n======================" | tee -a $LOG
+echo "=== PIHOLE_DISABLE ===" | tee -a $LOG
+echo "======================" | tee -a $LOG
 
-echo "Creating STOP file..."
-if [[ $(touch STOP) -eq 0 ]]
+if [ -f $PID_FILE ]
 then
-  echo "...done"
+  PID=$(<$PID_FILE)
 else
-  echo "ERROR - STOP file not created"
+  echo "No $PID_FILE file found!" | tee -a $LOG
   exit 1
 fi
 
-echo "Waiting for Python script to stop..."
-while [[ -n $(pgrep -f "$APP") ]]
-do
-  sleep 1
-done
-echo -e "...done\n"
+echo "Stopping Python script..." | tee -a $LOG
+if [[ $(kill "$PID") -eq 0 ]]
+then
+  echo "...killed process $PID" | tee -a $LOG
+  rm $PID_FILE
+else
+  echo "ERROR - process not stopped" | tee -a $LOG
+  exit 1
+fi
+
+echo -e "Done\n" | tee -a $LOG
 exit 0
