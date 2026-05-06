@@ -10,6 +10,6 @@ handlers:
     formatter: simple
     stream: ext://sys.stdout
 loggers:
-  __main__:
+  app:
     level: INFO
     handlers: [console]

@@ -7,7 +7,7 @@ import urllib3
 
 URL_API = "https://pihole.dacyho.me/api"
 
-log = logging.getLogger("__main__." + __name__)
+log = logging.getLogger("app." + __name__)
 urllib3.disable_warnings()
 
 

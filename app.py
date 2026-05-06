@@ -20,7 +20,7 @@ def _setup_logging() -> logging.Logger:
 
     logging.config.dictConfig(config)
 
-    return logging.getLogger(__name__)
+    return logging.getLogger("app")
 
 
 log = _setup_logging()
