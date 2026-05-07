@@ -7,7 +7,7 @@ import urllib3
 
 URL_API = "https://pihole.dacyho.me/api"
 
-log = logging.getLogger("app." + __name__)
+log = logging.getLogger(__name__)
 urllib3.disable_warnings()
 
 
@@ -35,7 +35,7 @@ class PiholeDisabler:
         self.authenticate()
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({type(self._password).__name__})"
+        return f"{type(self).__name__}({type(self._password)})"
 
     @property
     def headers(self) -> dict[str, str]:

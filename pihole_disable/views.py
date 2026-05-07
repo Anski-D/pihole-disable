@@ -1,38 +1,9 @@
-import os
-import logging, logging.config
+from flask import render_template, redirect, url_for, request
 
-from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, url_for, request
-import yaml
-
+from pihole_disable import app, API_PASSWORD
 from pihole_disable.pihole_disable import PiholeDisabler
 
-ENV_FILE = ".env"
-LOGGING_CONFIG = "logging.yaml"
-load_dotenv(ENV_FILE)
-API_PASSWORD = os.environ["API_PASSWORD"]
 disabler = PiholeDisabler(API_PASSWORD)
-
-
-def _setup_logging() -> logging.Logger:
-    with open(LOGGING_CONFIG) as f:
-        config = yaml.safe_load(f)
-
-    logging.config.dictConfig(config)
-
-    return logging.getLogger("app")
-
-
-log = _setup_logging()
-
-
-def create_app() -> Flask:
-    log.info("Creating Flask app")
-
-    return Flask(__name__)
-
-
-app = create_app()
 
 
 def _clean_period_value(period: float) -> float:
