@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 LOGGING_CONFIG = "logging.yaml"
 ENV_FILE = ".env"
 load_dotenv(ENV_FILE)
+API_URL = os.environ["API_URL"]
 API_PASSWORD = os.environ["API_PASSWORD"]
 
 
