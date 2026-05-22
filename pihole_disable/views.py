@@ -1,9 +1,9 @@
 from flask import render_template, redirect, url_for, request
 
 from pihole_disable import app, API_URL, API_PASSWORD
-from pihole_disable.pihole_disable import PiholeDisabler, AuthManager
+from pihole_disable.pihole_disable import DnsPiholeManager, AuthManager
 
-disabler = PiholeDisabler(AuthManager(API_URL, API_PASSWORD))
+disabler = DnsPiholeManager(AuthManager(API_URL, API_PASSWORD))
 
 
 def _clean_period_value(period: float) -> float:

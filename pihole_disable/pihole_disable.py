@@ -12,30 +12,24 @@ urllib3.disable_warnings()
 
 def requires_auth(func):
     @wraps(func)
-    def check_auth(obj: Authable, *args, **kwargs):
-        if not obj.is_authenticated:
+    def check_auth(obj: "Authable", *args, **kwargs):
+        if not obj.auth_manager.is_authenticated:
             log.info("%s not authenticated", obj)
-            obj.authenticate()
+            obj.auth_manager.authenticate()
 
         return func(obj, *args, **kwargs)
 
     return check_auth
 
 
-class Authable(Protocol):
-    is_authenticated: bool
-
-    def authenticate(self) -> None: ...
-
-
 class AuthManager:
-    _auth_path = "/auth"
+    _path = "/auth"
 
     def __init__(self, api_url: str, password: str) -> None:
         self.api_url = api_url
         self._password = password
         log.info("Created %s", self)
-        self._url = self.api_url + self._auth_path
+        self._url = self.api_url + self._path
         self._sid = ""
         self._csrf = ""
         self.authenticate()
@@ -66,34 +60,35 @@ class AuthManager:
         requests.request("DELETE", self._url, headers=self.headers, verify=False)
 
 
+class Authable(Protocol):
+    auth_manager: AuthManager
+    is_authenticated: bool
 
-class PiholeDisabler:
-    _dns_path = "/dns/blocking"
+    def authenticate(self) -> None: ...
+
+
+class PiholeManager:
+    _path: str
 
     def __init__(self, auth_manager: AuthManager) -> None:
-        self._auth_manager = auth_manager
+        self.auth_manager = auth_manager
         log.info("Created %s", self)
-        self._url = self._auth_manager.api_url + self._dns_path
+        self._url = self.auth_manager.api_url + self._path
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self._auth_manager})"
+        return f"{type(self).__name__}({self.auth_manager})"
 
-    @property
-    def headers(self) -> dict[str, str]:
-        return self._auth_manager.headers
 
-    @property
-    def is_authenticated(self) -> bool:
-        return self._auth_manager.is_authenticated
-
-    def authenticate(self) -> None:
-        self._auth_manager.authenticate()
+class DnsPiholeManager(PiholeManager):
+    _path = "/dns/blocking"
 
     @requires_auth
     def check_blocking(self) -> dict[str, bool | int]:
         log.debug("Checking blocking status")
 
-        response = json.loads(requests.request("GET", self._url, headers=self.headers, json={}, verify=False).text)
+        response = json.loads(
+            requests.request("GET", self._url, headers=self.auth_manager.headers, json={}, verify=False).text,
+        )
 
         return {
             "blocking": response["blocking"] == "enabled",
@@ -108,7 +103,7 @@ class PiholeDisabler:
             "timer": 60 * period, # Period in minutes converted to seconds
         }
 
-        requests.request("POST", self._url, headers=self.headers, json=payload, verify=False)
+        requests.request("POST", self._url, headers=self.auth_manager.headers, json=payload, verify=False)
 
     def increase_disable_period(self, period: float) -> None:
         current_status = self.check_blocking()
@@ -126,4 +121,4 @@ class PiholeDisabler:
             "blocking": True,
         }
 
-        requests.request("POST", self._url, headers=self.headers, json=payload, verify=False)
+        requests.request("POST", self._url, headers=self.auth_manager.headers, json=payload, verify=False)
