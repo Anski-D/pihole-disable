@@ -12,9 +12,9 @@
     </header>
     {%  block page_nav %}<nav>
         <menu id="menu-main">
-            <li><a href={{ url_for("index") }} id="link-status">Status</a></li>
-            <li><a href={{ url_for("enable") }} id="link-enable">Enable</a></li>
-            <li><a href={{ url_for("disable") }} id="link-disable">Disable</a></li>
+            <li><a href="{{ url_for('index') }}" id="link-status">Status</a></li>
+            <li><a href="{{ url_for('enable') }}" id="link-enable">Enable</a></li>
+            <li><a href="{{ url_for('disable') }}" id="link-disable">Disable</a></li>
         </menu>
     </nav>{% endblock %}
     {% block page_content %}{% endblock %}
