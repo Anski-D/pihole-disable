@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Pihole disabler</title>
-    {% if refresh_period > 0 %}<meta http-equiv="Refresh" content="{{ refresh_period }}" />{% endif %}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <script src="{{ url_for('static', filename='get_status.js') }}"></script>
 </head>
 <body>
     <header>
