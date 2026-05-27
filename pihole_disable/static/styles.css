@@ -84,11 +84,11 @@ nav menu#menu-disable > li > a {
 #status > p {
     font-size: 5vh;
     margin: 0;
-    & > #enabled {
+    & > .enabled {
         color: green;
         text-transform: uppercase;
     }
-    & > #disabled {
+    & > .disabled {
         color: red;
         text-transform: uppercase;
     }

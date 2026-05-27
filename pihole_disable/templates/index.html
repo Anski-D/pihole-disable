@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block page_content %}
     <section id="status">
-        <p><strong>Status:</strong> <span id="{% if blocked['blocking'] %}enabled{% else %}disabled{% endif %}">{% if blocked['blocking'] %}enabled{% else %}disabled{% endif %}</span>{% if blocked["timer"] > 0 %} for {{ blocked["timer"] }} seconds{% endif %}</p>
+        <p><strong>Status:</strong> <span id="status_text" class=""></span><span id="timer_text"></span></p>
     </section>
 {% endblock %}
