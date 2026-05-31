@@ -1,24 +1,28 @@
 const path = "/status"
 
 async function fetchData() {
-    let response = await fetch(path)
-    let result = await response.json();
-    updatePage(result);
+    const response = await fetch(path)
+    const result = await response.json();
+    await updatePage(result);
 }
 
-function updatePage(result) {
+async function updateStatusText(text) {
+    const element = document.getElementById("status_text")
+    element.innerHTML = text;
+    element.className = text
+}
+
+async function updatePage(result) {
     if (!result["blocking"]) {
-        document.getElementById("status_text").innerHTML = "disabled";
-        document.getElementById("status_text").className = "disabled";
+        await updateStatusText("disabled");
         document.getElementById("timer_text").innerHTML = ` for ${Math.round(result["timer"])} seconds`;
     } else {
-        document.getElementById("status_text").innerHTML = "enabled";
-        document.getElementById("status_text").className = "enabled";
+        await  updateStatusText("enabled");
         document.getElementById("timer_text").innerHTML = "";
     }
 }
 
-window.onload = async function () {
+window.onload = async function() {
     await fetchData();
     setInterval(fetchData, 5000);
 }
