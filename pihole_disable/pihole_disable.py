@@ -123,3 +123,14 @@ class DnsPiholeManager(PiholeManager):
         }
 
         requests.request("POST", self._url, headers=self.auth_manager.headers, json=payload, verify=False)
+
+
+class ClientPiholeManager(PiholeManager):
+    _path = "/info/client"
+
+    def get_client_ip(self) -> dict[str, str]:
+        response = json.loads(
+            requests.request("GET", self._url, verify=False).text,
+        )
+
+        return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}

@@ -17,9 +17,15 @@
 {% block page_content %}
     <div id="form">
         <form action="/disable" method="post">
-            <label for="period">Period (minutes): </label>
-            <input type="number" id="period" name="period" required autofocus>
-            <input type="submit" value="Submit" id="submit">
+            <div>
+                <label for="period">Period (minutes): </label>
+                <input type="number" id="period" name="period" required autofocus>
+                <input type="submit" value="Submit" id="submit">
+            </div>
+            <div>
+                <input type="checkbox" id="device" name="device" value="device">
+                <label for="device">Disable for just this device (<span id="client-ip"></span>)?</label>
+            </div>
         </form>
     </div>
 {% endblock %}

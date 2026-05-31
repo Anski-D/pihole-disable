@@ -1,9 +1,14 @@
 from flask import render_template, redirect, url_for, request
 
 from pihole_disable import app, API_URL, API_PASSWORD
-from pihole_disable.pihole_disable import DnsPiholeManager, AuthManager
+from pihole_disable.pihole_disable import (
+    DnsPiholeManager,
+    AuthManager,
+    ClientPiholeManager,
+)
 
-pihole_manager = DnsPiholeManager(AuthManager(API_URL, API_PASSWORD))
+pihole_manager = DnsPiholeManager(auth_manager := AuthManager(API_URL, API_PASSWORD))
+client_manager = ClientPiholeManager(auth_manager)
 
 
 def _clean_period_value(period: float) -> float:
@@ -49,3 +54,8 @@ def disable(period: str=""):
 @app.route("/status")
 def status() -> dict:
     return pihole_manager.check_blocking()
+
+
+@app.route("/client")
+def client() -> dict[str, str]:
+    return client_manager.get_client_ip()
