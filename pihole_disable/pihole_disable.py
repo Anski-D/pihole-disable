@@ -2,6 +2,7 @@ import json
 from functools import wraps
 import logging
 from typing import Protocol
+from abc import ABC
 
 import requests
 import urllib3
@@ -67,7 +68,7 @@ class Authable(Protocol):
     def authenticate(self) -> None: ...
 
 
-class PiholeManager:
+class PiholeManager(ABC):
     _path: str
 
     def __init__(self, auth_manager: AuthManager) -> None:
