@@ -8,8 +8,10 @@ async function fetchIp() {
 }
 
 async function updateIp(address) {
-    const element = document.getElementById("client-ip");
-    if (element) { element.innerHTML = address; }
+    let element = document.getElementById("client-ip");
+    if (element) { element.innerText = address; }
+    element = document.getElementById("ip-addr");
+    if (element) { element.value = address; }
 }
 
 async function fetchStatus() {
@@ -21,7 +23,7 @@ async function fetchStatus() {
 async function updateStatusText(text) {
     const element = document.getElementById("status-text");
     if (element) {
-        element.innerHTML = text;
+        element.innerText = text;
         element.className = text;
     }
 }
@@ -30,10 +32,10 @@ async function updateStatus(result) {
     const element = document.getElementById("timer-text");
     if (!result["blocking"]) {
         await updateStatusText("disabled");
-        if (element) {element.innerHTML = ` for ${Math.round(result["timer"])} seconds`;}
+        if (element) {element.innerText = ` for ${Math.round(result["timer"])} seconds`;}
     } else {
         await updateStatusText("enabled");
-        if (element) {element.innerHTML = "";}
+        if (element) {element.innerText = "";}
     }
 }
 

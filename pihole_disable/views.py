@@ -7,7 +7,8 @@ from pihole_disable.pihole_disable import (
     ClientPiholeManager,
 )
 
-pihole_manager = DnsPiholeManager(auth_manager := AuthManager(API_URL, API_PASSWORD))
+auth_manager = AuthManager(API_URL, API_PASSWORD)
+pihole_manager = DnsPiholeManager(auth_manager)
 client_manager = ClientPiholeManager(auth_manager)
 
 
