@@ -134,3 +134,46 @@ class ClientPiholeManager(PiholeManager):
         )
 
         return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}
+
+
+class GroupPiholeManager(PiholeManager):
+    _path = "/groups"
+    _group_name = "Disabled"
+
+    @property
+    def group_exists(self) -> bool:
+        return self.get_group_id() > -1
+
+    @requires_auth
+    def get_group_id(self) -> int:
+        response = json.loads(
+            requests.request(
+                "GET", self._url + "/" + self._group_name, headers=self.auth_manager.headers, verify=False,
+            ).text,
+        )
+
+        if response["groups"]:
+            return response["groups"][0]["id"]
+
+        return -1
+
+    @requires_auth
+    def create_group(self) -> None:
+        log.info("Creating group %s", self._group_name)
+        if not self.group_exists:
+            requests.request(
+                "POST",
+                self._url + "/" + self._group_name,
+                headers=self.auth_manager.headers,
+                verify=False,
+            )
+
+    @requires_auth
+    def delete_group(self) -> None:
+        log.info("Deleting group %s", self._group_name)
+        requests.request(
+            "DELETE",
+            self._url + "/" + self._group_name,
+            headers=self.auth_manager.headers,
+            verify=False,
+        )
