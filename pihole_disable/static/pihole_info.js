@@ -27,12 +27,13 @@ async function updateStatusText(text) {
 }
 
 async function updateStatus(result) {
+    const element = document.getElementById("timer-text");
     if (!result["blocking"]) {
         await updateStatusText("disabled");
-        document.getElementById("timer-text").innerHTML = ` for ${Math.round(result["timer"])} seconds`;
+        if (element) {element.innerHTML = ` for ${Math.round(result["timer"])} seconds`;}
     } else {
         await updateStatusText("enabled");
-        document.getElementById("timer-text").innerHTML = "";
+        if (element) {element.innerHTML = "";}
     }
 }
 
