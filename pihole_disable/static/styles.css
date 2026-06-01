@@ -105,13 +105,13 @@ form {
     gap: 0.5em;
     margin: 0;
     font-size: 5vh;
-    & > input#period, input#submit {
+    & input[type="number"], input[type="submit"] {
         font-size: 1em;
         background: white;
         color: black;
         border: none;
     }
-    & > input#submit {
+    & input[type="submit"] {
         padding: 0.25em;
         text-transform: uppercase;
         font-weight: bold;
@@ -119,7 +119,17 @@ form {
             outline: 0.25em solid gray;
         }
     }
-    & > input#period {
+    & input[type="number"] {
         width: 4em;
     }
+    & input[type="checkbox"] {
+        transform: scale(2);
+    }
+}
+form div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1ex;
 }
