@@ -4,12 +4,13 @@ from pihole_disable import app, API_URL, API_PASSWORD
 from pihole_disable.pihole_disable import (
     DnsPiholeManager,
     AuthManager,
+    GroupPiholeManager,
     ClientPiholeManager,
 )
 
 auth_manager = AuthManager(API_URL, API_PASSWORD)
 pihole_manager = DnsPiholeManager(auth_manager)
-client_manager = ClientPiholeManager(auth_manager)
+group_manager = GroupPiholeManager(auth_manager)
 
 
 def _clean_period_value(period: float) -> float:
@@ -59,4 +60,4 @@ def status() -> dict:
 
 @app.route("/client")
 def client() -> dict[str, str]:
-    return client_manager.get_client_ip()
+    return ClientPiholeManager.get_client_ip(API_URL)

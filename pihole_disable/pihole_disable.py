@@ -128,17 +128,47 @@ class DnsPiholeManager(PiholeManager):
 class ClientPiholeManager(PiholeManager):
     _path = "/info/client"
 
-    def get_client_ip(self) -> dict[str, str]:
+    def __init__(self, auth_manager: AuthManager, group_manager: "GroupPiholeManager", client: str) -> None:
+        super().__init__(auth_manager)
+        self._group_manager = group_manager
+        self._client = client
+
+    @classmethod
+    def get_client_ip(cls, api_url: str) -> dict[str, str]:
         response = json.loads(
-            requests.request("GET", self._url, verify=False).text,
+            requests.request("GET", api_url + cls._path, verify=False).text,
         )
 
         return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}
+
+    @requires_auth
+    def check_client_exists(self) -> bool:
+        response = json.loads(
+            requests.request("GET", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False).text,
+        )
+
+        return bool(response["clients"])
+
+    @requires_auth
+    def move_client_to_group(self) -> None:
+        payload = {"groups": [self._group_manager.get_group_id()]}
+
+        requests.request("PUT", self._url + "/" + self._client, headers=self.auth_manager.headers, json=payload, verify=False)
+
+    @requires_auth
+    def delete_client(self) -> None:
+        requests.request("DELETE", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False)
 
 
 class GroupPiholeManager(PiholeManager):
     _path = "/groups"
     _group_name = "Disabled"
+
+    def __init__(self, auth_manager: AuthManager) -> None:
+        super().__init__(auth_manager)
+
+        self.delete_group()
+        self.create_group()
 
     @property
     def group_exists(self) -> bool:
