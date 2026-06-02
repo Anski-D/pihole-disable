@@ -3,6 +3,8 @@ from functools import wraps
 import logging
 from typing import Protocol
 from abc import ABC
+import asyncio
+import time
 
 import requests
 import urllib3
@@ -141,8 +143,9 @@ class ClientPiholeManager(PiholeManager):
 
         return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}
 
+    @property
     @requires_auth
-    def check_client_exists(self) -> bool:
+    def client_exists(self) -> bool:
         response = json.loads(
             requests.request("GET", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False).text,
         )
@@ -151,6 +154,7 @@ class ClientPiholeManager(PiholeManager):
 
     @requires_auth
     def move_client_to_group(self) -> None:
+        self._group_manager.create_group()
         payload = {"groups": [self._group_manager.get_group_id()]}
 
         requests.request("PUT", self._url + "/" + self._client, headers=self.auth_manager.headers, json=payload, verify=False)
@@ -207,3 +211,39 @@ class GroupPiholeManager(PiholeManager):
             headers=self.auth_manager.headers,
             verify=False,
         )
+
+
+class DisabledClient:
+    def __init__(self, client_manager: ClientPiholeManager) -> None:
+        self._client_manager = client_manager
+        log.debug("Creating %s", self)
+
+        self._time_start = time.monotonic()
+        self._period_total = 0
+
+        self._timeouts = asyncio.Queue()
+        self._workers = []
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self._client_manager})"
+
+    def add_disable_period(self, period: int) -> None:
+        self._period_total += period
+        self._timeouts.put(period * 60)  # Put in seconds
+
+    async def client_disable_pihole(self, done: asyncio.Event) -> None:
+        self._time_start = time.monotonic()
+        self._client_manager.move_client_to_group()
+        self._workers.append(asyncio.create_task(self._worker()))
+        await self._timeouts.join()
+        self._client_manager.delete_client()
+        done.set()
+
+    async def _worker(self) -> None:
+        while True:
+            sleep_for = await self._timeouts.get()
+            await asyncio.sleep(sleep_for)
+            self._timeouts.task_done()
+
+    def query_remaining_period(self) -> int:
+        return max(0, round(self._period_total - (time.monotonic() - self._time_start)))
