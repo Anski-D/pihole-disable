@@ -2,15 +2,14 @@ from flask import render_template, redirect, url_for, request
 
 from pihole_disable import app, API_URL, API_PASSWORD
 from pihole_disable.pihole_disable import (
-    DnsPiholeManager,
     AuthManager,
-    GroupPiholeManager,
+    PiholeController,
     ClientPiholeManager,
 )
 
 auth_manager = AuthManager(API_URL, API_PASSWORD)
-pihole_manager = DnsPiholeManager(auth_manager)
-group_manager = GroupPiholeManager(auth_manager)
+pihole_controller = PiholeController(auth_manager)
+dns_manager = pihole_controller.dns_manager
 
 
 def _clean_period_value(period: float) -> float:
@@ -19,7 +18,7 @@ def _clean_period_value(period: float) -> float:
 
 @app.route("/")
 def index():
-    blocked = pihole_manager.check_blocking()
+    blocked = dns_manager.check_blocking()
     blocked["timer"] = round(blocked["timer"])
 
     return render_template(
@@ -31,7 +30,7 @@ def index():
 
 @app.route("/enable")
 def enable():
-    pihole_manager.enable_blocking()
+    dns_manager.enable_blocking()
 
     return redirect(url_for("index"))
 
@@ -41,12 +40,12 @@ def enable():
 def disable(period: str=""):
     if request.method == "POST":
         if (period := _clean_period_value(float(request.form["period"]))) > 0:
-            pihole_manager.disable_blocking(period)
+            dns_manager.disable_blocking(period)
 
         return redirect(url_for("index"))
 
     if period:
-        pihole_manager.increase_disable_period(_clean_period_value(int(period)))
+        dns_manager.increase_disable_period(_clean_period_value(int(period)))
 
         return redirect(url_for("index"))
 
@@ -55,7 +54,7 @@ def disable(period: str=""):
 
 @app.route("/status")
 def status() -> dict:
-    return pihole_manager.check_blocking()
+    return dns_manager.check_blocking()
 
 
 @app.route("/client")

@@ -127,43 +127,6 @@ class DnsPiholeManager(PiholeManager):
         requests.request("POST", self._url, headers=self.auth_manager.headers, json=payload, verify=False)
 
 
-class ClientPiholeManager(PiholeManager):
-    _path = "/info/client"
-
-    def __init__(self, auth_manager: AuthManager, group_manager: "GroupPiholeManager", client: str) -> None:
-        super().__init__(auth_manager)
-        self._group_manager = group_manager
-        self._client = client
-
-    @classmethod
-    def get_client_ip(cls, api_url: str) -> dict[str, str]:
-        response = json.loads(
-            requests.request("GET", api_url + cls._path, verify=False).text,
-        )
-
-        return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}
-
-    @property
-    @requires_auth
-    def client_exists(self) -> bool:
-        response = json.loads(
-            requests.request("GET", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False).text,
-        )
-
-        return bool(response["clients"])
-
-    @requires_auth
-    def move_client_to_group(self) -> None:
-        self._group_manager.create_group()
-        payload = {"groups": [self._group_manager.get_group_id()]}
-
-        requests.request("PUT", self._url + "/" + self._client, headers=self.auth_manager.headers, json=payload, verify=False)
-
-    @requires_auth
-    def delete_client(self) -> None:
-        requests.request("DELETE", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False)
-
-
 class GroupPiholeManager(PiholeManager):
     _path = "/groups"
     _group_name = "Disabled"
@@ -213,6 +176,47 @@ class GroupPiholeManager(PiholeManager):
         )
 
 
+class ClientPiholeManager(PiholeManager):
+    _path = "/info/client"
+
+    def __init__(self, auth_manager: AuthManager, group_manager: GroupPiholeManager, client: str) -> None:
+        super().__init__(auth_manager)
+        self._group_manager = group_manager
+        self._client = client
+
+    @property
+    def client(self) -> str:
+        return self._client
+
+    @classmethod
+    def get_client_ip(cls, api_url: str) -> dict[str, str]:
+        response = json.loads(
+            requests.request("GET", api_url + cls._path, verify=False).text,
+        )
+
+        return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}
+
+    @property
+    @requires_auth
+    def client_exists(self) -> bool:
+        response = json.loads(
+            requests.request("GET", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False).text,
+        )
+
+        return bool(response["clients"])
+
+    @requires_auth
+    def move_client_to_group(self) -> None:
+        self._group_manager.create_group()
+        payload = {"groups": [self._group_manager.get_group_id()]}
+
+        requests.request("PUT", self._url + "/" + self._client, headers=self.auth_manager.headers, json=payload, verify=False)
+
+    @requires_auth
+    def delete_client(self) -> None:
+        requests.request("DELETE", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False)
+
+
 class DisabledClient:
     def __init__(self, client_manager: ClientPiholeManager) -> None:
         self._client_manager = client_manager
@@ -226,6 +230,10 @@ class DisabledClient:
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self._client_manager})"
+
+    @property
+    def client(self) -> str:
+        return self._client_manager.client
 
     def add_disable_period(self, period: int) -> None:
         self._period_total += period
@@ -247,3 +255,37 @@ class DisabledClient:
 
     def query_remaining_period(self) -> int:
         return max(0, round(self._period_total - (time.monotonic() - self._time_start)))
+
+    
+class PiholeController:
+    def __init__(self, auth_manager: AuthManager) -> None:
+        self._auth_manager = auth_manager
+        log.info("Creating %s", self)
+        
+        self._dns_manager = DnsPiholeManager(auth_manager)
+        self._group_manager = GroupPiholeManager(auth_manager)
+        
+        self._disabled_clients: dict[str, DisabledClient] = {}
+        
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self._auth_manager})"
+    
+    @property
+    def dns_manager(self) -> DnsPiholeManager:
+        return self._dns_manager
+    
+    async def disable_client(self, client: str, period: int) -> None:
+        disabled_client = self._disabled_clients.get(client)
+        if disabled_client is None:
+            disabled_client = DisabledClient(ClientPiholeManager(self._auth_manager, self._group_manager))
+            self._disabled_clients[client] = disabled_client
+            await self._start_client_disable(disabled_client, period)
+
+        disabled_client.add_disable_period(period)
+
+    async def _start_client_disable(self, client: DisabledClient, period: int) -> None:
+        client.add_disable_period(period)
+        event = asyncio.Event()
+        await client.client_disable_pihole(event)
+        await event.wait()
+        del self._disabled_clients[client.client]
