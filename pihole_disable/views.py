@@ -24,7 +24,6 @@ def index():
     return render_template(
         "index.html",
         blocked=blocked,
-        refresh_period=5,
     )
 
 
@@ -37,9 +36,12 @@ def enable():
 
 @app.route("/disable", methods=("POST", "GET"))
 @app.route("/disable/<period>")
-def disable(period: str=""):
+async def disable(period: str=""):
     if request.method == "POST":
-        if (period := _clean_period_value(float(request.form["period"]))) > 0:
+        period = _clean_period_value(float(request.form["period"]))
+        if request.form.get("device") == "y":
+            await pihole_controller.disable_client(request.form["ip-addr"], period)
+        elif period > 0:
             dns_manager.disable_blocking(period)
 
         return redirect(url_for("index"))
@@ -49,7 +51,7 @@ def disable(period: str=""):
 
         return redirect(url_for("index"))
 
-    return render_template("disable.html", refresh_period=0)
+    return render_template("disable.html")
 
 
 @app.route("/status")

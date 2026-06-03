@@ -218,15 +218,14 @@ class ClientPiholeManager(PiholeManager):
 
 
 class DisabledClient:
+    _sleep: asyncio.Task
+
     def __init__(self, client_manager: ClientPiholeManager) -> None:
         self._client_manager = client_manager
         log.debug("Creating %s", self)
 
         self._time_start = time.monotonic()
-        self._period_total = 0
-
-        self._timeouts = asyncio.Queue()
-        self._workers = []
+        self._period = 0
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self._client_manager})"
@@ -235,26 +234,19 @@ class DisabledClient:
     def client(self) -> str:
         return self._client_manager.client
 
-    def add_disable_period(self, period: int) -> None:
-        self._period_total += period
-        self._timeouts.put(period * 60)  # Put in seconds
-
-    async def client_disable_pihole(self, done: asyncio.Event) -> None:
+    async def client_disable_pihole(self, period: float) -> None:
+        self._period = period  # In seconds
         self._time_start = time.monotonic()
         self._client_manager.move_client_to_group()
-        self._workers.append(asyncio.create_task(self._worker()))
-        await self._timeouts.join()
+        self._sleep = asyncio.create_task(asyncio.sleep(self._period))
+        await self._sleep
         self._client_manager.delete_client()
-        done.set()
 
-    async def _worker(self) -> None:
-        while True:
-            sleep_for = await self._timeouts.get()
-            await asyncio.sleep(sleep_for)
-            self._timeouts.task_done()
+    def cancel_sleep(self) -> None:
+        self._sleep.cancel()
 
     def query_remaining_period(self) -> int:
-        return max(0, round(self._period_total - (time.monotonic() - self._time_start)))
+        return max(0, round(self._period - (time.monotonic() - self._time_start)))
 
     
 class PiholeController:
@@ -274,18 +266,15 @@ class PiholeController:
     def dns_manager(self) -> DnsPiholeManager:
         return self._dns_manager
     
-    async def disable_client(self, client: str, period: int) -> None:
+    async def disable_client(self, client: str, period: float) -> None:
         disabled_client = self._disabled_clients.get(client)
         if disabled_client is None:
-            disabled_client = DisabledClient(ClientPiholeManager(self._auth_manager, self._group_manager))
+            disabled_client = DisabledClient(ClientPiholeManager(self._auth_manager, self._group_manager, client))
             self._disabled_clients[client] = disabled_client
-            await self._start_client_disable(disabled_client, period)
+        else:
+            disabled_client.cancel_sleep()
 
-        disabled_client.add_disable_period(period)
+        if period > 0:
+            await disabled_client.client_disable_pihole(60 * period)
 
-    async def _start_client_disable(self, client: DisabledClient, period: int) -> None:
-        client.add_disable_period(period)
-        event = asyncio.Event()
-        await client.client_disable_pihole(event)
-        await event.wait()
-        del self._disabled_clients[client.client]
+        del self._disabled_clients[client]
