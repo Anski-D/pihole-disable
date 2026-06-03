@@ -139,6 +139,7 @@ class GroupPiholeManager(PiholeManager):
 
     @property
     def group_exists(self) -> bool:
+        log.debug("Checking if group %s exists", self._group_name)
         return self.get_group_id() > -1
 
     @requires_auth
@@ -156,12 +157,13 @@ class GroupPiholeManager(PiholeManager):
 
     @requires_auth
     def create_group(self) -> None:
-        log.info("Creating group %s", self._group_name)
         if not self.group_exists:
+            log.info("Creating group %s", self._group_name)
             requests.request(
-                "POST",
+                "PUT",
                 self._url + "/" + self._group_name,
                 headers=self.auth_manager.headers,
+                json={},
                 verify=False,
             )
 
@@ -177,7 +179,7 @@ class GroupPiholeManager(PiholeManager):
 
 
 class ClientPiholeManager(PiholeManager):
-    _path = "/info/client"
+    _path = "/clients"
 
     def __init__(self, auth_manager: AuthManager, group_manager: GroupPiholeManager, client: str) -> None:
         super().__init__(auth_manager)
@@ -191,7 +193,7 @@ class ClientPiholeManager(PiholeManager):
     @classmethod
     def get_client_ip(cls, api_url: str) -> dict[str, str]:
         response = json.loads(
-            requests.request("GET", api_url + cls._path, verify=False).text,
+            requests.request("GET", api_url + "/info/client", verify=False).text,
         )
 
         return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}
@@ -236,13 +238,16 @@ class DisabledClient:
 
     async def client_disable_pihole(self, period: float) -> None:
         self._period = period  # In seconds
+        log.debug("Removing %s from Pihole blocking for %s seconds", self.client, self._period)
         self._time_start = time.monotonic()
         self._client_manager.move_client_to_group()
         self._sleep = asyncio.create_task(asyncio.sleep(self._period))
         await self._sleep
+        log.debug("Reactivating blocking for %s", self.client)
         self._client_manager.delete_client()
 
     def cancel_sleep(self) -> None:
+        log.debug("Canceling sleep for %s, %s seconds were left", self.client, self.query_remaining_period())
         self._sleep.cancel()
 
     def query_remaining_period(self) -> int:
