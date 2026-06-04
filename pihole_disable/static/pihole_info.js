@@ -8,11 +8,12 @@ async function fetchResponse(path) {
 
 async function updateIpText() {
     const clientInfo = await fetchResponse(clientPath)
+    const ipText = `(${clientInfo["ip"]})`
 
     let element = document.getElementById("client-ip");
-    if (element) { element.innerText = clientInfo["ip"]; }
+    if (element) { element.innerText = ipText; }
     element = document.getElementById("ip-addr");
-    if (element) { element.value = clientInfo["ip"]; }
+    if (element) { element.value = ipText; }
 }
 
 async function updateStatus(path, timerTextId, statusTextId) {
