@@ -1,7 +1,7 @@
-from flask import render_template, redirect, url_for, request
+from quart import render_template, redirect, url_for, request
 
 from pihole_disable import app, API_URL, API_PASSWORD
-from pihole_disable.pihole_disable import (
+from pihole_disable.pihole_control import (
     AuthManager,
     PiholeController,
     ClientPiholeManager,
@@ -17,11 +17,11 @@ def _clean_period_value(period: float) -> float:
 
 
 @app.route("/")
-def index():
+async def index():
     blocked = dns_manager.check_blocking()
     blocked["timer"] = round(blocked["timer"])
 
-    return render_template(
+    return await render_template(
         "index.html",
         blocked=blocked,
     )
@@ -38,9 +38,10 @@ def enable():
 @app.route("/disable/<period>")
 async def disable(period: str=""):
     if request.method == "POST":
-        period = _clean_period_value(float(request.form["period"]))
-        if request.form.get("device") == "y":
-            await pihole_controller.disable_client(request.form["ip-addr"], period)
+        form = await request.form
+        period = _clean_period_value(float(form["period"]))
+        if form.get("device") == "y":
+            app.add_background_task(pihole_controller.disable_client, form["ip-addr"], period)
         elif period > 0:
             dns_manager.disable_blocking(period)
 
@@ -51,7 +52,7 @@ async def disable(period: str=""):
 
         return redirect(url_for("index"))
 
-    return render_template("disable.html")
+    return await render_template("disable.html")
 
 
 @app.route("/status")
