@@ -1,8 +1,9 @@
-import logging, logging.config
+import logging
+import logging.config
 import os
 
 import yaml
-from flask import Flask
+from quart import Quart
 from dotenv import load_dotenv
 
 LOGGING_CONFIG = "logging.yaml"
@@ -24,10 +25,10 @@ def _setup_logging() -> logging.Logger:
 log = _setup_logging()
 
 
-def create_app() -> Flask:
+def create_app() -> Quart:
     log.info("Creating Flask app")
 
-    return Flask(__name__)
+    return Quart(__name__)
 
 
 app = create_app()
