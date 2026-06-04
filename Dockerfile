@@ -50,4 +50,4 @@ COPY . .
 EXPOSE 8888
 
 # Run the application.
-CMD ["gunicorn", "pihole_disable:app", "-b", "0.0.0.0:8888"]
+CMD ["hypercorn", "pihole_disable:app", "-b", "0.0.0.0:8888"]
