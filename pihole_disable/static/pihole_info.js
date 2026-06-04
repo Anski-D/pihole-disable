@@ -1,46 +1,53 @@
 const statusPath = "/status"
 const clientPath = "/client"
 
-async function fetchIp() {
-    const response = await fetch(clientPath);
-    const result = await response.json();
-    await updateIp(result["IP"]);
+async function fetchResponse(path) {
+    const response = await fetch(path);
+    return await response.json();
 }
 
-async function updateIp(address) {
+async function updateIpText() {
+    const clientInfo = await fetchResponse(clientPath)
+
     let element = document.getElementById("client-ip");
-    if (element) { element.innerText = address; }
+    if (element) { element.innerText = clientInfo["ip"]; }
     element = document.getElementById("ip-addr");
-    if (element) { element.value = address; }
+    if (element) { element.value = clientInfo["ip"]; }
 }
 
-async function fetchStatus() {
-    const response = await fetch(statusPath);
-    const result = await response.json();
-    await updateStatus(result);
+async function updateStatus(path, timerTextId, statusTextId) {
+    const statusInfo = await fetchResponse(path)
+
+    const element = document.getElementById(timerTextId);
+    if (!statusInfo["blocking"]) {
+        await updateStatusText("disabled", statusTextId);
+        if (element) {element.innerText = ` for ${Math.round(statusInfo["timer"])} seconds`;}
+    } else {
+        await updateStatusText("enabled", statusTextId);
+        if (element) {element.innerText = "";}
+    }
 }
 
-async function updateStatusText(text) {
-    const element = document.getElementById("status-text");
+async function updateStatusText(text, statusTextId) {
+    const element = document.getElementById(statusTextId);
     if (element) {
         element.innerText = text;
         element.className = text;
     }
 }
 
-async function updateStatus(result) {
-    const element = document.getElementById("timer-text");
-    if (!result["blocking"]) {
-        await updateStatusText("disabled");
-        if (element) {element.innerText = ` for ${Math.round(result["timer"])} seconds`;}
-    } else {
-        await updateStatusText("enabled");
-        if (element) {element.innerText = "";}
-    }
+async function updateStatusMain() {
+    await updateStatus(statusPath, "timer-text-main", "status-text-main");
+}
+
+async function updateStatusClient() {
+    await updateStatus(clientPath, "timer-text-client", "status-text-client");
 }
 
 window.onload = async function() {
-    await fetchIp();
-    await fetchStatus();
-    setInterval(fetchStatus, 5000);
+    await updateIpText()
+    await updateStatusMain();
+    await updateStatusClient()
+    setInterval(updateStatusMain, 5000);
+    setInterval(updateStatusClient, 5000);
 }
