@@ -15,7 +15,7 @@ fi
 echo "Activating Python environment" | tee -a $LOG
 source .venv/bin/activate
 echo "Starting script" | tee -a $LOG
-gunicorn pihole_disable:app -b 127.0.0.1:"$PORT" -p .pid >> .pihole_disable.log 2>&1 &
+hypercorn pihole_disable:app -b 127.0.0.1:"$PORT" -p .pid >> .pihole_disable.log 2>&1 &
 echo "Running on port $PORT under process $!" | tee -a $LOG
 echo -e "Use $PWD/stop_pihole_disable.sh to terminate\n" | tee -a $LOG
 
