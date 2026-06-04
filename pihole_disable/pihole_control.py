@@ -87,8 +87,6 @@ class DnsPiholeManager(PiholeManager):
 
     @requires_auth
     def check_blocking(self) -> dict[str, bool | int]:
-        log.debug("Checking blocking status")
-
         response = json.loads(
             requests.request("GET", self._url, headers=self.auth_manager.headers, json={}, verify=False).text,
         )
@@ -216,6 +214,7 @@ class ClientPiholeManager(PiholeManager):
 
     @requires_auth
     def delete_client(self) -> None:
+        log.debug("Deleting client %s from Pihole", self._client)
         requests.request("DELETE", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False)
 
 
@@ -238,17 +237,17 @@ class DisabledClient:
 
     async def client_disable_pihole(self, period: float) -> None:
         self._period = period  # In seconds
-        log.debug("Removing %s from Pihole blocking for %s seconds", self.client, self._period)
+        log.debug("Removing %s from Pihole blocking for %d seconds", self.client, self._period)
         self._time_start = time.monotonic()
         self._client_manager.move_client_to_group()
         self._sleep = asyncio.create_task(asyncio.sleep(self._period))
         await self._sleep
-        log.debug("Reactivating blocking for %s", self.client)
-        self._client_manager.delete_client()
 
     def cancel_sleep(self) -> None:
-        log.debug("Canceling sleep for %s, %s seconds were left", self.client, self.query_remaining_period())
+        log.debug("Canceling sleep for %s, %d seconds were left", self.client, self.query_remaining_period())
         self._sleep.cancel()
+        log.debug("Reactivating blocking for %s", self.client)
+        self._client_manager.delete_client()
 
     def query_remaining_period(self) -> int:
         return max(0, round(self._period - (time.monotonic() - self._time_start)))
@@ -273,13 +272,11 @@ class PiholeController:
     
     async def disable_client(self, client: str, period: float) -> None:
         disabled_client = self._disabled_clients.get(client)
-        if disabled_client is None:
+        if disabled_client:
+            disabled_client.cancel_sleep()
+        else:
             disabled_client = DisabledClient(ClientPiholeManager(self._auth_manager, self._group_manager, client))
             self._disabled_clients[client] = disabled_client
-        else:
-            disabled_client.cancel_sleep()
 
         if period > 0:
             await disabled_client.client_disable_pihole(60 * period)
-
-        del self._disabled_clients[client]
