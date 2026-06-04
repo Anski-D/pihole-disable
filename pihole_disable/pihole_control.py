@@ -189,12 +189,12 @@ class ClientPiholeManager(PiholeManager):
         return self._client
 
     @classmethod
-    def get_client_ip(cls, api_url: str) -> dict[str, str]:
+    def get_client_ip(cls, api_url: str) -> str:
         response = json.loads(
             requests.request("GET", api_url + "/info/client", verify=False).text,
         )
 
-        return {"IP": [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]}
+        return [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]
 
     @property
     @requires_auth
@@ -248,6 +248,7 @@ class DisabledClient:
         self._sleep.cancel()
         log.debug("Reactivating blocking for %s", self.client)
         self._client_manager.delete_client()
+        self._period = 0
 
     def query_remaining_period(self) -> int:
         return max(0, round(self._period - (time.monotonic() - self._time_start)))
@@ -280,3 +281,8 @@ class PiholeController:
 
         if period > 0:
             await disabled_client.client_disable_pihole(60 * period)
+
+    def query_client_remaining_period(self, client) -> int:
+        client = self._disabled_clients.get(client)
+
+        return client.query_remaining_period() if client is not None else 0

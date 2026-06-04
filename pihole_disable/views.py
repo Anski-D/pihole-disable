@@ -61,5 +61,8 @@ def status() -> dict:
 
 
 @app.route("/client")
-def client() -> dict[str, str]:
-    return ClientPiholeManager.get_client_ip(API_URL)
+def client() -> dict[str, str | bool | int]:
+    client_ip = ClientPiholeManager.get_client_ip(API_URL)
+    period = pihole_controller.query_client_remaining_period(client_ip)
+    
+    return {"ip": client_ip, "blocking": period == 0, "timer": period}
