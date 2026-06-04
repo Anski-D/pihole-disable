@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block page_content %}
     <section id="status">
-        <p><strong>Status:</strong> <span id="status-text" class=""></span><span id="timer-text"></span></p>
+        <p><strong>Overall status:</strong> <span id="status-text-main" class=""></span><span id="timer-text-main"></span></p>
+        <p><strong>Device (<span id="client-ip"></span>):</strong> <span id="status-text-client" class=""></span><span id="timer-text-client"></span></p>
+        <p>If Pihole is disabled, device status is ignored.</p>
     </section>
 {% endblock %}
