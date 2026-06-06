@@ -1,19 +1,28 @@
 const statusPath = "/status"
 const clientPath = "/client"
+const clientInfoPath = "/info/client"
+const apiUrl = "https://pihole.dacyho.me/api"
+let ipAddress
 
 async function fetchResponse(path) {
     const response = await fetch(path);
     return await response.json();
 }
 
-async function updateIpText() {
-    const clientInfo = await fetchResponse(clientPath)
-    const ipText = `(${clientInfo["ip"]})`
+async function getClientIp() {
+    const clientInfo = await fetchResponse(apiUrl + clientInfoPath)
+    for (const element of clientInfo["headers"]) {
+        if (element["name"] === "X-Real-IP") {
+            return element["value"]
+        }
+    }
+}
 
+async function updateIpText() {
     let element = document.getElementById("client-ip");
-    if (element) { element.innerText = ipText; }
+    if (element) { element.innerText = `(${ipAddress})`; }
     element = document.getElementById("ip-addr");
-    if (element) { element.value = ipText; }
+    if (element) { element.value = ipAddress; }
 }
 
 async function updateStatus(path, timerTextId, statusTextId) {
@@ -42,10 +51,11 @@ async function updateStatusMain() {
 }
 
 async function updateStatusClient() {
-    await updateStatus(clientPath, "timer-text-client", "status-text-client");
+    await updateStatus(`${clientPath}/${ipAddress}`, "timer-text-client", "status-text-client");
 }
 
 window.onload = async function() {
+    ipAddress = await getClientIp()
     await updateIpText()
     await updateStatusMain();
     await updateStatusClient()

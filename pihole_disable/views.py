@@ -4,12 +4,11 @@ from pihole_disable import app, API_URL, API_PASSWORD
 from pihole_disable.pihole_control import (
     AuthManager,
     PiholeController,
-    ClientPiholeManager,
 )
 
 auth_manager = AuthManager(API_URL, API_PASSWORD)
 pihole_controller = PiholeController(auth_manager)
-dns_manager = pihole_controller.dns_manager
+dns_manager = pihole_controller.get_dns_manager()
 
 
 def _clean_period_value(period: float) -> float:
@@ -60,9 +59,8 @@ def status() -> dict:
     return dns_manager.check_blocking()
 
 
-@app.route("/client")
-def client() -> dict[str, str | bool | int]:
-    client_ip = ClientPiholeManager.get_client_ip(API_URL)
-    period = pihole_controller.query_client_remaining_period(client_ip)
+@app.route("/client/<_client>")
+def client(_client: str="") -> dict[str, str | bool | int]:
+    period = pihole_controller.query_client_remaining_period(_client)
     
-    return {"ip": client_ip, "blocking": period == 0, "timer": period}
+    return {"ip": _client, "blocking": period == 0, "timer": period}

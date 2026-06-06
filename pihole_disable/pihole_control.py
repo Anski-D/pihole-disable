@@ -188,14 +188,6 @@ class ClientPiholeManager(PiholeManager):
     def client(self) -> str:
         return self._client
 
-    @classmethod
-    def get_client_ip(cls, api_url: str) -> str:
-        response = json.loads(
-            requests.request("GET", api_url + "/info/client", verify=False).text,
-        )
-
-        return [_dict["value"] for _dict in response["headers"] if _dict["name"] == "X-Real-IP"][0]
-
     @property
     @requires_auth
     def client_exists(self) -> bool:
@@ -267,8 +259,7 @@ class PiholeController:
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self._auth_manager})"
     
-    @property
-    def dns_manager(self) -> DnsPiholeManager:
+    def get_dns_manager(self) -> DnsPiholeManager:
         return self._dns_manager
     
     async def disable_client(self, client: str, period: float) -> None:
@@ -282,7 +273,7 @@ class PiholeController:
         if period > 0:
             await disabled_client.client_disable_pihole(60 * period)
 
-    def query_client_remaining_period(self, client) -> int:
+    def query_client_remaining_period(self, client: str) -> int:
         client = self._disabled_clients.get(client)
 
         return client.query_remaining_period() if client is not None else 0
