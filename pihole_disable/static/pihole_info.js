@@ -1,6 +1,6 @@
-const statusPath = "/status"
-const clientPath = "/client"
-const clientInfoPath = "/info/client"
+const pathStatusMain = "/status"
+const pathStatusClient = "/client"
+const pathInfoClient = "/info/client"
 const apiUrl = "https://pihole.dacyho.me/api"
 let ipAddress
 
@@ -10,7 +10,7 @@ async function fetchResponse(path) {
 }
 
 async function getClientIp() {
-    const clientInfo = await fetchResponse(apiUrl + clientInfoPath)
+    const clientInfo = await fetchResponse(apiUrl + pathInfoClient)
     for (const element of clientInfo["headers"]) {
         if (element["name"] === "X-Real-IP") {
             return element["value"]
@@ -25,16 +25,21 @@ async function updateIpText() {
     if (element) { element.value = ipAddress; }
 }
 
-async function updateStatus(path, timerTextId, statusTextId) {
-    const statusInfo = await fetchResponse(path)
-
+async function updateStatus(statusInfo, timerTextId, statusTextId) {
     const element = document.getElementById(timerTextId);
     if (!statusInfo["blocking"]) {
         await updateStatusText("disabled", statusTextId);
-        if (element) {element.innerText = ` for ${Math.round(statusInfo["timer"])} seconds`;}
+            if (element) {
+                if (statusInfo["timer"] > 0) {
+                    element.innerText = ` for ${Math.round(statusInfo["timer"])} seconds`;
+                }
+                else {
+                    element.innerText = "";
+                }
+            }
     } else {
         await updateStatusText("enabled", statusTextId);
-        if (element) {element.innerText = "";}
+        if (element) { element.innerText = ""; }
     }
 }
 
@@ -46,19 +51,22 @@ async function updateStatusText(text, statusTextId) {
     }
 }
 
-async function updateStatusMain() {
-    await updateStatus(statusPath, "timer-text-main", "status-text-main");
-}
+async function updatePiholeInfo() {
+    const statusInfoMain = await fetchResponse(pathStatusMain)
+    const statusInfoClient = await fetchResponse(`${pathStatusClient}/${ipAddress}`)
 
-async function updateStatusClient() {
-    await updateStatus(`${clientPath}/${ipAddress}`, "timer-text-client", "status-text-client");
+    if (!statusInfoMain["blocking"]) {
+        statusInfoClient["blocking"] = false
+        statusInfoClient["timer"] = 0
+    }
+
+    await updateStatus(statusInfoMain, "timer-text-main", "status-text-main");
+    await updateStatus(statusInfoClient, "timer-text-client", "status-text-client");
 }
 
 window.onload = async function() {
     ipAddress = await getClientIp()
     await updateIpText()
-    await updateStatusMain();
-    await updateStatusClient()
-    setInterval(updateStatusMain, 5000);
-    setInterval(updateStatusClient, 5000);
+    await updatePiholeInfo();
+    setInterval(updatePiholeInfo, 5000);
 }
