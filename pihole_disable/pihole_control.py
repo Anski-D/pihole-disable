@@ -234,6 +234,7 @@ class DisabledClient:
         self._client_manager.move_client_to_group()
         self._sleep = asyncio.create_task(asyncio.sleep(self._period))
         await self._sleep
+        self._client_manager.delete_client()
 
     def cancel_sleep(self) -> None:
         log.debug("Canceling sleep for %s, %d seconds were left", self.client, self.query_remaining_period())
