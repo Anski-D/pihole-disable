@@ -32,6 +32,9 @@ async function updateStatus(statusInfo, timerTextId, statusTextId) {
             if (element) {
                 if (statusInfo["timer"] > 0) {
                     element.innerText = ` for ${Math.round(statusInfo["timer"])} seconds`;
+                    if (statusTextId === "status-text-client") {
+                        element.innerHTML += ` <a id="cancel-link" href="/enable/${ipAddress}">Cancel</a>`;
+                    }
                 }
                 else {
                     element.innerText = "";

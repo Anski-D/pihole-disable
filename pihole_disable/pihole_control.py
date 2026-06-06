@@ -274,6 +274,9 @@ class PiholeController:
         if period > 0:
             await disabled_client.client_disable_pihole(60 * period)
 
+    async def enable_client(self, client: str) -> None:
+        await self.disable_client(client, 0)
+
     def query_client_remaining_period(self, client: str) -> int:
         client = self._disabled_clients.get(client)
 

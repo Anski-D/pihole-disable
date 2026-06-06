@@ -27,8 +27,12 @@ async def index():
 
 
 @app.route("/enable")
-def enable():
-    dns_manager.enable_blocking()
+@app.route("/enable/<_client>")
+async def enable(_client: str=""):
+    if _client:
+        await pihole_controller.enable_client(_client)
+    else:
+        dns_manager.enable_blocking()
 
     return redirect(url_for("index"))
 
