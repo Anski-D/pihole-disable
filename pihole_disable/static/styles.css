@@ -102,6 +102,7 @@ nav menu#menu-disable > li > a {
 }
 form {
     display: flex;
+    flex-direction: column;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
@@ -130,9 +131,7 @@ form {
     }
 }
 form div {
-    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 1ex;
 }
