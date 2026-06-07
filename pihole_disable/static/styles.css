@@ -62,7 +62,7 @@ nav menu > li > a {
     &#link-enable {
         background: green;
     }
-    &#link-disable {
+    &#link-disable, &.link-disable {
         background: red;
     }
     &:hover {

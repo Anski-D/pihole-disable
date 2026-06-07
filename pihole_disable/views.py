@@ -39,7 +39,8 @@ async def enable(_client: str=""):
 
 @app.route("/disable", methods=("POST", "GET"))
 @app.route("/disable/<period>")
-async def disable(period: str=""):
+@app.route("/disable/<period>/<_client>")
+async def disable(period: str="", _client: str="") -> None:
     if request.method == "POST":
         form = await request.form
         period = _clean_period_value(float(form["period"]))
@@ -51,7 +52,11 @@ async def disable(period: str=""):
         return redirect(url_for("index"))
 
     if period:
-        dns_manager.increase_disable_period(_clean_period_value(int(period)))
+        period = int(period)
+        if _client:
+            app.add_background_task(pihole_controller.increase_disable_period, _client, period)
+        else:
+            dns_manager.increase_disable_period(_clean_period_value(period))
 
         return redirect(url_for("index"))
 

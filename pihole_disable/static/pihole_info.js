@@ -3,6 +3,29 @@ const pathStatusClient = "/client"
 const pathInfoClient = "/info/client"
 const apiUrl = "https://pihole.dacyho.me/api"
 let ipAddress
+let updateIpAddress = appendIpAddress
+let nextIpAddressChange = removeIpAddress
+
+window.onload = async function() {
+    ipAddress = await getClientIp()
+    const deviceCheck = document.getElementById("device")
+    if (deviceCheck) { deviceCheck.onclick = await updateLinkHref; }
+    await updateIpText()
+    await updatePiholeInfo();
+    setInterval(updatePiholeInfo, 5000);
+}
+
+async function updateLinkHref() {
+    const links = document.getElementsByClassName("link-disable");
+    for (const link of links) {
+        link.href = await updateIpAddress(link.href)
+    }
+    [updateIpAddress, nextIpAddressChange] = [nextIpAddressChange, updateIpAddress]
+}
+
+async function appendIpAddress(text) { return text + "/" + ipAddress; }
+
+async function removeIpAddress(text) { return text.replace("/" + ipAddress, "") ; }
 
 async function fetchResponse(path) {
     const response = await fetch(path);
@@ -65,11 +88,4 @@ async function updatePiholeInfo() {
 
     await updateStatus(statusInfoMain, "timer-text-main", "status-text-main");
     await updateStatus(statusInfoClient, "timer-text-client", "status-text-client");
-}
-
-window.onload = async function() {
-    ipAddress = await getClientIp()
-    await updateIpText()
-    await updatePiholeInfo();
-    setInterval(updatePiholeInfo, 5000);
 }
