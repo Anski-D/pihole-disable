@@ -17,15 +17,13 @@
 {% block page_content %}
     <div id="form">
         <form action="/disable" method="post">
-            <div>
-                <label for="period">Period (minutes): </label>
-                <input type="number" id="period" name="period" required autofocus>
-                <input type="submit" value="Submit" id="submit">
-            </div>
-            <div>
-                <input type="checkbox" id="device" name="device" value="y">
-                <label for="device">Device only</label>
-            </div>
+            <label id="form-period">
+                <input type="number" id="period" name="period" required autofocus> minutes
+            </label>
+            <label id="form-check">
+                <input type="checkbox" id="device" name="device" value="y"> Device only
+            </label>
+            <input type="submit" value="Submit" id="submit">
             <input type="hidden" id="ip-addr" name="ip-addr">
         </form>
     </div>
