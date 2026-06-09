@@ -7,7 +7,7 @@ body {
     margin: 0;
     text-align: center;
     display: grid;
-    grid-template-rows: 1fr 6fr 2fr;
+    grid-template-rows: 0.5fr 6fr 2fr;
     height: 100vh;
 }
 header {
@@ -16,7 +16,7 @@ header {
 }
 h1 {
     text-transform: uppercase;
-    font-size: 5vh;
+    font-size: 2.5vh;
     margin: 0;
 }
 nav menu {
@@ -93,9 +93,6 @@ nav menu#menu-disable > li > a {
         text-transform: uppercase;
     }
 }
-#client-ip {
-    font-size: 2.5vh;
-}
 #form {
     border: 2px solid white;
     align-content: center;
@@ -132,7 +129,7 @@ form input[type="number"] {
     width: 4em;
 }
 form input[type="checkbox"] {
-    transform: scale(4);
+    transform: scale(3);
 }
 form > input[type="submit"] {
     grid-area: formSubmit;
