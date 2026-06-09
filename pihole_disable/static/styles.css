@@ -82,7 +82,7 @@ nav menu#menu-disable > li > a {
     align-content: center;
 }
 #status > p {
-    font-size: 5vh;
+    font-size: 4vh;
     margin: 0;
     & > .enabled {
         color: green;
@@ -95,26 +95,28 @@ nav menu#menu-disable > li > a {
 }
 #form {
     border: 2px solid white;
-    align-content: center;
 }
 form {
     height: 100%;
     display: grid;
     grid-template-rows: repeat(2, 1fr);
+    grid-auto-columns: auto minmax(auto, 50%);
     grid-template-areas:
         "inputPeriod formSubmit"
         "inputCheck formSubmit";
-    font-size: 5vh;
+    justify-content: center;
+    font-size: 4vh;
 }
 form > label#form-period {
     grid-area: inputPeriod;
     align-content: center;
+    justify-self: end;
 }
 form > label#form-check {
     display: flex;
     grid-area: inputCheck;
+    justify-self: end;
     align-items: center;
-    justify-content: space-evenly;
 }
 form > * {
     margin: 0.25em;
@@ -129,7 +131,7 @@ form input[type="number"] {
     width: 4em;
 }
 form input[type="checkbox"] {
-    transform: scale(3);
+    zoom: 5;
 }
 form > input[type="submit"] {
     grid-area: formSubmit;

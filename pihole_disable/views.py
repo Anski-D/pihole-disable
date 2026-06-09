@@ -11,8 +11,24 @@ pihole_controller = PiholeController(auth_manager)
 dns_manager = pihole_controller.get_dns_manager()
 
 
-def _clean_period_value(period: float) -> float:
-    return max(0, period)
+def _clean_period_value(period: int | str) -> int:
+    return max(0, int(period))
+
+
+def _check_client(_client: str) -> bool:
+    if len(_client) > 4*3 + 3:
+        return False
+
+    if len(client_parts := _client.split(".")) == 4:
+        return False
+
+    if any(not part.isdigit() for part in client_parts):
+        return False
+
+    if any(not (0 <= int(part) < 256) for part in client_parts):
+        return False
+
+    return True
 
 
 @app.route("/")
@@ -38,25 +54,24 @@ async def enable(_client: str=""):
 
 
 @app.route("/disable", methods=("POST", "GET"))
-@app.route("/disable/<period>")
-@app.route("/disable/<period>/<_client>")
-async def disable(period: str="", _client: str="") -> None:
+@app.route("/disable/<int:period>")
+@app.route("/disable/<int:period>/<_client>")
+async def disable(period: int=0, _client: str="") -> None:
     if request.method == "POST":
         form = await request.form
-        period = _clean_period_value(float(form["period"]))
+        period = _clean_period_value(form["period"])
         if form.get("device") == "y":
-            app.add_background_task(pihole_controller.disable_client, form["ip-addr"], period)
+            app.add_background_task(pihole_controller.disable_client, _check_client(form["ip-addr"]), period)
         elif period > 0:
             dns_manager.disable_blocking(period)
 
         return redirect(url_for("index"))
 
     if period:
-        period = int(period)
-        if _client:
+        if _check_client(_client):
             app.add_background_task(pihole_controller.increase_disable_period, _client, period)
         else:
-            dns_manager.increase_disable_period(_clean_period_value(period))
+            dns_manager.increase_disable_period(period)
 
         return redirect(url_for("index"))
 
