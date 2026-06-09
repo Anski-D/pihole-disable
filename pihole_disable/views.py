@@ -19,7 +19,7 @@ def _check_client(_client: str) -> bool:
     if len(_client) > 4*3 + 3:
         return False
 
-    if len(client_parts := _client.split(".")) == 4:
+    if len(client_parts := _client.split(".")) != 4:
         return False
 
     if any(not part.isdigit() for part in client_parts):
