@@ -131,6 +131,8 @@ form input[type="number"] {
 }
 form input[type="checkbox"] {
     margin: 0 1em 0 0;
+    width: 3.5vh;
+    height: 3.5vh;
 }
 form > input[type="submit"] {
     @media (orientation: landscape) {
@@ -146,4 +148,12 @@ form > input[type="submit"] {
 a#cancel-link {
     color: black;
     font-weight: bold;
+    text-decoration: none;
+}
+a#cancel-link, form > label#form-check {
+    &:hover {
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        text-decoration-color: gray;
+    }
 }
