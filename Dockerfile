@@ -46,9 +46,6 @@ USER appuser
 # Copy the source code into the container.
 COPY . .
 
-# Make a logs directory
-RUN mkdir "logs"
-
 # Expose the port that the application listens on.
 EXPOSE 8888
 
