@@ -60,8 +60,10 @@ async def disable(period: int=0, _client: str="") -> None:
     if request.method == "POST":
         form = await request.form
         period = _clean_period_value(form["period"])
+        _client = form["ip-addr"]
         if form.get("device") == "y":
-            app.add_background_task(pihole_controller.disable_client, _check_client(form["ip-addr"]), period)
+            if _check_client(_client):
+                app.add_background_task(pihole_controller.disable_client, _client, period)
         elif period > 0:
             dns_manager.disable_blocking(period)
 
