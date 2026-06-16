@@ -22,7 +22,7 @@ h1 {
 nav menu {
     list-style: none;
     margin: 0;
-    padding: 2em;
+    padding: 1em;
     display: grid;
     gap: 2em;
     height: 100%;
@@ -37,7 +37,6 @@ nav menu {
     }
     &#menu-disable {
         padding: 0;
-        gap: 1em;
         @media (orientation: portrait) {
             grid-template-columns: repeat(3, 1fr);
         }
@@ -73,7 +72,7 @@ nav menu#menu-disable > li > a {
     line-height: 10vh;
     font-size: 5vh;
     &:hover {
-        outline: 0.5rem solid gray;
+        outline: 1rem solid gray;
     }
 }
 #status {
