@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-LOG=.pihole_disable.log
+LOGDIR=logs
+LOGFILE=.pihole_disable.log
+LOG=$LOGDIR/$LOGFILE
 PORT=$1
 
-echo -e "\n======================" | tee $LOG
+if [ ! -d $LOGDIR ]
+then
+  mkdir $LOGDIR
+fi
+
+echo "======================" | tee -a $LOG
 echo "=== PIHOLE_DISABLE ===" | tee -a $LOG
 echo "======================" | tee -a $LOG
 

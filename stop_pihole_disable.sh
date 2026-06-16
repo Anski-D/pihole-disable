@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-LOG=.pihole_disable.log
+LOGDIR=logs
+LOGFILE=.pihole_disable.log
+LOG=$LOGDIR/$LOGFILE
 PID_FILE=.pid
 
-echo -e "\n======================" | tee -a $LOG
+if [ ! -d $LOGDIR ]
+then
+  mkdir $LOGDIR
+fi
+
+echo "======================" | tee -a $LOG
 echo "=== PIHOLE_DISABLE ===" | tee -a $LOG
 echo "======================" | tee -a $LOG
 
