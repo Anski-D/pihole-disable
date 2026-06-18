@@ -6,4 +6,9 @@ services:
     ports:
       - '8888:8888'
     env_file: .env
+    volumes:
+      - logs:/app/logs
     restart: unless-stopped
+
+volume:
+  logs:
