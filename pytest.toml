@@ -1,0 +1,7 @@
+[pytest]
+required_plugins = ["pytest-env"]
+addopts = ["--import-mode=importlib"]
+
+[pytest_env]
+API_URL = "https://example.com"
+API_PASSWORD = "dummypassword"
