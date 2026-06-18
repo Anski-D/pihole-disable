@@ -1,34 +1,15 @@
 from quart import render_template, redirect, url_for, request
 
-from pihole_disable import app, API_URL, API_PASSWORD
+from pihole_disable.main import app, API_URL, API_PASSWORD
 from pihole_disable.pihole_control import (
     AuthManager,
     PiholeController,
 )
+from pihole_disable.utils import _clean_period_value, _check_client
 
 auth_manager = AuthManager(API_URL, API_PASSWORD)
 pihole_controller = PiholeController(auth_manager)
 dns_manager = pihole_controller.get_dns_manager()
-
-
-def _clean_period_value(period: int | str) -> int:
-    return max(0, int(period))
-
-
-def _check_client(_client: str) -> bool:
-    if len(_client) > 4*3 + 3:
-        return False
-
-    if len(client_parts := _client.split(".")) != 4:
-        return False
-
-    if any(not part.isdigit() for part in client_parts):
-        return False
-
-    if any(not (0 <= int(part) < 256) for part in client_parts):
-        return False
-
-    return True
 
 
 @app.route("/")
