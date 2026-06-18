@@ -1,6 +1,7 @@
 [pytest]
 required_plugins = ["pytest-env"]
-addopts = ["--import-mode=importlib"]
+addopts = ["--cov=pihole_disable"]
+testpaths = ["tests"]
 
 [pytest_env]
 API_URL = "https://example.com"
