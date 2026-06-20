@@ -1,8 +1,10 @@
 import os
 
 import pytest
+from responses import matchers
+import pytest_responses
 
-from pihole_disable.pihole_control import AuthManager
+from pihole_disable.pihole_control import AuthManager, DnsPiholeManager
 
 API_URL = os.environ["API_URL"]
 API_PASSWORD = os.environ["API_PASSWORD"]
@@ -31,3 +33,68 @@ def auth_manager(monkeypatch, auth_headers: dict[str, str]) -> AuthManager:
 class TestAuthManager:
     def test_url_str(self, auth_manager):
         assert auth_manager._url == API_URL + "/auth"
+
+
+class TestDnsPiholeManager:
+    def test_url_str(self, auth_manager: AuthManager, auth_headers: dict[str, str]) -> None:
+        dns_manager = DnsPiholeManager(auth_manager)
+
+        assert dns_manager._url == API_URL + "/dns/blocking"
+
+    @pytest.mark.parametrize("blocking, timer", [("enabled", 1), ("enabled", 999)])
+    def test_check_blocking_enabled(
+            self,
+            blocking: str,
+            timer: int | None,
+            monkeypatch,
+            auth_manager: AuthManager,
+            auth_headers: dict[str, str],
+            responses,
+    ) -> None:
+        monkeypatch.setattr(DnsPiholeManager, "check_blocking", DnsPiholeManager.check_blocking.__wrapped__)
+        dns_manager = DnsPiholeManager(auth_manager)
+        responses.get(
+            API_URL + "/dns/blocking",
+            match=[
+                matchers.header_matcher(auth_headers),
+                matchers.json_params_matcher({}),
+            ],
+            json={"blocking": blocking, "timer": timer},
+        )
+        resp = dns_manager.check_blocking()
+
+        assert all([resp["blocking"], isinstance(resp["timer"], int), resp["timer"] > 0])
+
+    def test_check_blocking_disabled(
+            self,
+            monkeypatch,
+            auth_manager: AuthManager,
+            auth_headers: dict[str, str],
+            responses,
+    ) -> None:
+        monkeypatch.setattr(DnsPiholeManager, "check_blocking", DnsPiholeManager.check_blocking.__wrapped__)
+        dns_manager = DnsPiholeManager(auth_manager)
+        responses.get(
+            API_URL + "/dns/blocking",
+            match=[
+                matchers.header_matcher(auth_headers),
+                matchers.json_params_matcher({}),
+            ],
+            json={"blocking": "disabled", "timer": None},
+        )
+        resp = dns_manager.check_blocking()
+
+        assert not resp["blocking"] and resp["timer"] == 0
+
+    @pytest.mark.parametrize("timer", [4, 8, 16, 32, 64, 128])
+    def test_disabled_blocking(self, timer, monkeypatch, auth_manager: AuthManager, auth_headers: dict[str, str], responses) -> None:
+        monkeypatch.setattr(DnsPiholeManager, "disable_blocking", DnsPiholeManager.disable_blocking.__wrapped__)
+        dns_manager = DnsPiholeManager(auth_manager)
+        responses.post(
+            API_URL + "/dns/blocking",
+            match=[
+                matchers.header_matcher(auth_headers),
+                matchers.json_params_matcher({"blocking": False, "timer": 60 * timer}),
+            ]
+        )
+        dns_manager.disable_blocking(timer)
