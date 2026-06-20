@@ -18,6 +18,7 @@ dev = [
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
     "pytest-env>=1.6.0",
+    "pytest-responses>=0.5.1",
     "pytest-sugar>=1.1.1",
     "ruff>=0.15.14",
 ]
