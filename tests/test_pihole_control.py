@@ -99,7 +99,7 @@ class TestDnsPiholeManager:
         assert not resp["blocking"] and resp["timer"] == 0
 
     @pytest.mark.parametrize("timer", [4, 8, 16, 32, 64, 128])
-    def test_disabled_blocking(
+    def test_disable_blocking(
         self,
         timer: int,
         monkeypatch,
@@ -121,3 +121,25 @@ class TestDnsPiholeManager:
             ],
         )
         dns_manager.disable_blocking(timer)
+
+    def test_enable_blocking(
+        self,
+        monkeypatch,
+        auth_manager: AuthManager,
+        auth_headers: dict[str, str],
+        responses,
+    ) -> None:
+        monkeypatch.setattr(
+            DnsPiholeManager,
+            "enable_blocking",
+            DnsPiholeManager.enable_blocking.__wrapped__,
+        )
+        dns_manager = DnsPiholeManager(auth_manager)
+        responses.post(
+            API_URL + "/dns/blocking",
+            match=[
+                matchers.header_matcher(auth_headers),
+                matchers.json_params_matcher({"blocking": True}),
+            ],
+        )
+        dns_manager.enable_blocking()
