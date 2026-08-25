@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 LOGDIR=logs
-LOGFILE=.pihole_disable.log
+LOGFILE=.pihole-disable.log
 LOG=$LOGDIR/$LOGFILE
 PORT=$1
 
@@ -22,7 +22,7 @@ fi
 echo "Activating Python environment" | tee -a $LOG
 source .venv/bin/activate
 echo "Starting script" | tee -a $LOG
-hypercorn pihole_disable.main:app -b 127.0.0.1:"$PORT" -p .pid >> .pihole_disable.log 2>&1 &
+hypercorn pihole_disable.main:app -b 127.0.0.1:"$PORT" -p .pid >> $LOG 2>&1 &
 echo "Running on port $PORT under process $!" | tee -a $LOG
 echo -e "Use $PWD/stop_pihole_disable.sh to terminate\n" | tee -a $LOG
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 LOGDIR=logs
-LOGFILE=.pihole_disable.log
+LOGFILE=.pihole-disable.log
 LOG=$LOGDIR/$LOGFILE
 PID_FILE=.pid
 
