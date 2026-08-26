@@ -10,6 +10,6 @@ handlers:
     formatter: simple
     stream: ext://sys.stdout
 loggers:
-  pihole_disable:
+  pihole-disable:
     level: INFO
     handlers: [console]
