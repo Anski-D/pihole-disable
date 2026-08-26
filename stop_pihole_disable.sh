@@ -10,7 +10,7 @@ then
 fi
 
 echo "======================" | tee -a $LOG
-echo "=== PIHOLE_DISABLE ===" | tee -a $LOG
+echo "=== PIHOLE-DISABLE ===" | tee -a $LOG
 echo "======================" | tee -a $LOG
 
 if [ -f $PID_FILE ]

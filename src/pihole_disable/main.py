@@ -29,7 +29,10 @@ log = _setup_logging()
 
 
 def create_app() -> Quart:
-    log.info("Creating Flask app")
+    log.info("======================")
+    log.info("=== PIHOLE-DISABLE ===")
+    log.info("======================")
+    log.info("Creating Quart (Flask) app")
 
     return Quart(__name__)
 
