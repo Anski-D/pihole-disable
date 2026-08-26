@@ -1,12 +1,15 @@
 import logging
 import logging.config
 import os
+from pathlib import Path
 
 import yaml
 from quart import Quart
 from dotenv import load_dotenv
 
 LOGGING_CONFIG = "logging.yaml"
+if Path(".docker").exists():
+    LOGGING_CONFIG = "logging_docker.yaml"
 ENV_FILE = ".env"
 load_dotenv(ENV_FILE)
 API_URL = os.environ["API_URL"]

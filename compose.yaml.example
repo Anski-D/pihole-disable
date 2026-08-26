@@ -10,5 +10,5 @@ services:
       - logs:/app/logs
     restart: unless-stopped
 
-volume:
+volumes:
   logs:
