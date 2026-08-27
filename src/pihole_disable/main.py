@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 
 import yaml
-from quart import Quart
 from dotenv import load_dotenv
+from quart import Quart
 
 LOGGING_CONFIG = "logging.yaml"
 if Path(".docker").exists():
@@ -39,4 +39,4 @@ def create_app() -> Quart:
 
 app = create_app()
 
-import pihole_disable.views
+import pihole_disable.views  # noqa: F401

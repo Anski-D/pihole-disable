@@ -14,14 +14,13 @@ repos:
     -   id: check-xml
     -   id: check-yaml
     -   id: debug-statements
-    -   id: detect-aws-credentials
     -   id: detect-private-key
     -   id: end-of-file-fixer
     -   id: fix-byte-order-marker
     -   id: mixed-line-ending
-        args: [--fix=lf]
+        args: [ --fix=lf ]
     -   id: name-tests-test
-        args: [--pytest-test-first]
+        args: [ --pytest-test-first ]
     -   id: pretty-format-json
     -   id: trailing-whitespace
 -   repo: https://github.com/astral-sh/uv-pre-commit
@@ -39,7 +38,8 @@ repos:
     hooks:
     # Run the linter.
     -   id: ruff-check
-        types_or: [ pyproject ]
+        types_or: [ python, pyproject ]
+        args: [ --fix ]
     # Run the formatter.
     -   id: ruff-format
 -   repo: local

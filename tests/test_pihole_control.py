@@ -1,8 +1,8 @@
 import os
 
 import pytest
+import pytest_responses  # noqa: F401
 from responses import matchers
-import pytest_responses
 
 from pihole_disable.pihole_control import AuthManager, DnsPiholeManager
 

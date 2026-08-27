@@ -1,10 +1,10 @@
-import json
-from functools import wraps
-import logging
-from typing import Protocol
-from abc import ABC
 import asyncio
+import json
+import logging
 import time
+from abc import ABC
+from functools import wraps
+from typing import Protocol
 
 import requests
 import urllib3
@@ -46,14 +46,18 @@ class AuthManager:
 
     @property
     def is_authenticated(self) -> bool:
-        response = requests.request("GET", self._url, headers=self.headers, verify=False)
+        response = requests.request(
+            "GET", self._url, headers=self.headers, verify=False
+        )
 
         return response.status_code == 200
 
     def authenticate(self) -> None:
         log.info("Authenticating %s with Pihole API", self)
         payload = {"password": self._password}
-        response = json.loads(requests.request("POST", self._url, json=payload, verify=False).text)
+        response = json.loads(
+            requests.request("POST", self._url, json=payload, verify=False).text
+        )
         self._sid = response["session"]["sid"]
         self._csrf = response["session"]["csrf"]
 
@@ -88,7 +92,13 @@ class DnsPiholeManager(PiholeManager):
     @requires_auth
     def check_blocking(self) -> dict[str, bool | int]:
         response = json.loads(
-            requests.request("GET", self._url, headers=self.auth_manager.headers, json={}, verify=False).text,
+            requests.request(
+                "GET",
+                self._url,
+                headers=self.auth_manager.headers,
+                json={},
+                verify=False,
+            ).text,
         )
 
         return {
@@ -101,10 +111,16 @@ class DnsPiholeManager(PiholeManager):
         log.info("Disabling blocking for %s minutes", round(period))
         payload = {
             "blocking": False,
-            "timer": 60 * period, # Period in minutes converted to seconds
+            "timer": 60 * period,  # Period in minutes converted to seconds
         }
 
-        requests.request("POST", self._url, headers=self.auth_manager.headers, json=payload, verify=False)
+        requests.request(
+            "POST",
+            self._url,
+            headers=self.auth_manager.headers,
+            json=payload,
+            verify=False,
+        )
 
     def increase_disable_period(self, period: float) -> None:
         current_status = self.check_blocking()
@@ -122,7 +138,13 @@ class DnsPiholeManager(PiholeManager):
             "blocking": True,
         }
 
-        requests.request("POST", self._url, headers=self.auth_manager.headers, json=payload, verify=False)
+        requests.request(
+            "POST",
+            self._url,
+            headers=self.auth_manager.headers,
+            json=payload,
+            verify=False,
+        )
 
 
 class GroupPiholeManager(PiholeManager):
@@ -144,7 +166,10 @@ class GroupPiholeManager(PiholeManager):
     def get_group_id(self) -> int:
         response = json.loads(
             requests.request(
-                "GET", self._url + "/" + self._group_name, headers=self.auth_manager.headers, verify=False,
+                "GET",
+                self._url + "/" + self._group_name,
+                headers=self.auth_manager.headers,
+                verify=False,
             ).text,
         )
 
@@ -179,7 +204,9 @@ class GroupPiholeManager(PiholeManager):
 class ClientPiholeManager(PiholeManager):
     _path = "/clients"
 
-    def __init__(self, auth_manager: AuthManager, group_manager: GroupPiholeManager, client: str) -> None:
+    def __init__(
+        self, auth_manager: AuthManager, group_manager: GroupPiholeManager, client: str
+    ) -> None:
         super().__init__(auth_manager)
         self._group_manager = group_manager
         self._client = client
@@ -192,7 +219,12 @@ class ClientPiholeManager(PiholeManager):
     @requires_auth
     def client_exists(self) -> bool:
         response = json.loads(
-            requests.request("GET", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False).text,
+            requests.request(
+                "GET",
+                self._url + "/" + self._client,
+                headers=self.auth_manager.headers,
+                verify=False,
+            ).text,
         )
 
         return bool(response["clients"])
@@ -202,12 +234,23 @@ class ClientPiholeManager(PiholeManager):
         self._group_manager.create_group()
         payload = {"groups": [self._group_manager.get_group_id()]}
 
-        requests.request("PUT", self._url + "/" + self._client, headers=self.auth_manager.headers, json=payload, verify=False)
+        requests.request(
+            "PUT",
+            self._url + "/" + self._client,
+            headers=self.auth_manager.headers,
+            json=payload,
+            verify=False,
+        )
 
     @requires_auth
     def delete_client(self) -> None:
         log.debug("Deleting client %s from Pihole", self._client)
-        requests.request("DELETE", self._url + "/" + self._client, headers=self.auth_manager.headers, verify=False)
+        requests.request(
+            "DELETE",
+            self._url + "/" + self._client,
+            headers=self.auth_manager.headers,
+            verify=False,
+        )
 
 
 class DisabledClient:
@@ -218,7 +261,7 @@ class DisabledClient:
         log.debug("Creating %s", self)
 
         self._time_start = time.monotonic()
-        self._period = 0
+        self._period = 0.0
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self._client_manager})"
@@ -229,7 +272,9 @@ class DisabledClient:
 
     async def client_disable_pihole(self, period: float) -> None:
         self._period = period  # In seconds
-        log.debug("Removing %s from Pihole blocking for %d seconds", self.client, self._period)
+        log.debug(
+            "Removing %s from Pihole blocking for %d seconds", self.client, self._period
+        )
         self._time_start = time.monotonic()
         self._client_manager.move_client_to_group()
         self._sleep = asyncio.create_task(asyncio.sleep(self._period))
@@ -237,7 +282,11 @@ class DisabledClient:
         self._client_manager.delete_client()
 
     def cancel_sleep(self) -> None:
-        log.debug("Canceling sleep for %s, %d seconds were left", self.client, self.query_remaining_period())
+        log.debug(
+            "Canceling sleep for %s, %d seconds were left",
+            self.client,
+            self.query_remaining_period(),
+        )
         self._sleep.cancel()
         log.debug("Reactivating blocking for %s", self.client)
         self._client_manager.delete_client()
@@ -246,29 +295,31 @@ class DisabledClient:
     def query_remaining_period(self) -> int:
         return max(0, round(self._period - (time.monotonic() - self._time_start)))
 
-    
+
 class PiholeController:
     def __init__(self, auth_manager: AuthManager) -> None:
         self._auth_manager = auth_manager
         log.info("Creating %s", self)
-        
+
         self._dns_manager = DnsPiholeManager(auth_manager)
         self._group_manager = GroupPiholeManager(auth_manager)
-        
+
         self._disabled_clients: dict[str, DisabledClient] = {}
-        
+
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self._auth_manager})"
-    
+
     def get_dns_manager(self) -> DnsPiholeManager:
         return self._dns_manager
-    
+
     async def disable_client(self, client: str, period: float) -> None:
         disabled_client = self._disabled_clients.get(client)
         if disabled_client:
             disabled_client.cancel_sleep()
         else:
-            disabled_client = DisabledClient(ClientPiholeManager(self._auth_manager, self._group_manager, client))
+            disabled_client = DisabledClient(
+                ClientPiholeManager(self._auth_manager, self._group_manager, client)
+            )
             self._disabled_clients[client] = disabled_client
 
         if period > 0:
@@ -276,12 +327,14 @@ class PiholeController:
 
     async def increase_disable_period(self, client: str, period: float) -> None:
         log.debug("Increasing disable period for %s by %s minutes", client, period)
-        await self.disable_client(client, self.query_client_remaining_period(client) / 60 + period)
+        await self.disable_client(
+            client, self.query_client_remaining_period(client) / 60 + period
+        )
 
     async def enable_client(self, client: str) -> None:
         await self.disable_client(client, 0)
 
     def query_client_remaining_period(self, client: str) -> int:
-        client = self._disabled_clients.get(client)
+        _client = self._disabled_clients.get(client)
 
-        return client.query_remaining_period() if client is not None else 0
+        return _client.query_remaining_period() if _client is not None else 0

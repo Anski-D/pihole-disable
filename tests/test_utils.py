@@ -1,6 +1,6 @@
 import pytest
 
-from pihole_disable.utils import _clean_period_value, _check_client
+from pihole_disable.utils import _check_client, _clean_period_value
 
 
 @pytest.mark.parametrize(
