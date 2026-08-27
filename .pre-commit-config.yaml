@@ -45,7 +45,7 @@ repos:
 -   repo: local
     hooks:
     -   id: tox
-        name: tox-pytest
+        name: tox pytest
         entry: tox -p
         language: system
         pass_filenames: false
