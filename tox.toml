@@ -1,0 +1,20 @@
+env_list = [
+    { product = [
+            {prefix = "3.", start = 11, stop = 14},
+            {prefix = "quart0.2", start = 0, stop = 2},
+    ] },
+]
+
+[env_run_base]
+description = "run tests with pytest"
+deps = [
+    "pytest>=9",
+    "pytest-cov",
+    "pytest-sugar",
+    "pytest-env",
+    "pytest-responses",
+    { replace = "if", condition = "factor['quart0.20']", then = ["quart>=0.20,<0.21"], extend = true },
+    { replace = "if", condition = "factor['quart0.21']", then = ["quart>=0.21,<0.22"], extend = true },
+    { replace = "if", condition = "factor['quart0.22']", then = ["quart>=0.22,<0.23"], extend = true },
+]
+commands = [["pytest", { replace = "posargs", extend = true }]]

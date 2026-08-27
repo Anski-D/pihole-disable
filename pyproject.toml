@@ -1,7 +1,7 @@
 [project]
 name = "pihole-disable"
 version = "2026.08.26"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "quart>=0.20.0",
     "python-dotenv>=1.2.2",
@@ -13,14 +13,16 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black>=26.5.1",
     "mypy>=2.1.0",
+    "ruff>=0.15.14",
+    "tox>=4.60.1",
+]
+test = [
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
     "pytest-env>=1.6.0",
     "pytest-responses>=0.5.1",
     "pytest-sugar>=1.1.1",
-    "ruff>=0.15.14",
 ]
 
 [build-system]
