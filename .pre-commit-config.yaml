@@ -1,0 +1,54 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0  # Use the ref you want to point at
+    hooks:
+    -   id: check-added-large-files
+    -   id: check-ast
+    -   id: check-case-conflict
+    -   id: check-executables-have-shebangs
+    -   id: check-illegal-windows-names
+    -   id: check-json
+    -   id: check-shebang-scripts-are-executable
+    -   id: check-symlinks
+    -   id: check-toml
+    -   id: check-xml
+    -   id: check-yaml
+    -   id: debug-statements
+    -   id: detect-aws-credentials
+    -   id: detect-private-key
+    -   id: end-of-file-fixer
+    -   id: fix-byte-order-marker
+    -   id: mixed-line-ending
+        args: [--fix=lf]
+    -   id: name-tests-test
+        args: [--pytest-test-first]
+    -   id: pretty-format-json
+    -   id: trailing-whitespace
+-   repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.12.6
+    hooks:
+    -   id: uv-export
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.1
+    hooks:
+    -   id: mypy
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.16.4
+    hooks:
+    # Run the linter.
+    -   id: ruff-check
+        types_or: [ pyproject ]
+    # Run the formatter.
+    -   id: ruff-format
+-   repo: local
+    hooks:
+    -   id: tox
+        name: tox-pytest
+        entry: tox -p
+        language: system
+        pass_filenames: false
+        stages:
+          -    pre-commit
+          -    pre-push
