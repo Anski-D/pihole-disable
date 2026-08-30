@@ -46,7 +46,7 @@ repos:
     hooks:
     -   id: tox
         name: tox pytest
-        entry: tox -p
+        entry: tox
         language: system
         pass_filenames: false
         stages:
