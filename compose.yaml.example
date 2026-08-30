@@ -1,14 +1,17 @@
 services:
-  pihole_disable:
-    container_name: pihole_disable
+  pihole-disable:
+    container_name: pihole-disable
     build:
       context: .
     ports:
-      - '8888:8888'
+    # Change the first number to the port you wish to use on the host machine
+      - '5000:8888'
     env_file: .env
-    volumes:
-      - logs:/app/logs
+    # Uncomment the following lines is persistent logs in a Docker volume are wanted
+#    volumes:
+#      - logs:/app/logs
     restart: unless-stopped
 
-volumes:
-  logs:
+# Uncomment the following lines is persistent logs in a Docker volume are wanted
+#volumes:
+#  logs:

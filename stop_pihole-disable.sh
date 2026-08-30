@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-LOGDIR=logs
-LOGFILE=.pihole-disable.log
-LOG=$LOGDIR/$LOGFILE
+LOG_DIR=logs
+LOG_FILE=.pihole-disable.log
+LOG=$LOG_DIR/$LOG_FILE
 PID_FILE=.pid
 
-if [ ! -d $LOGDIR ]
+if [ ! -d $LOG_DIR ]
 then
-  mkdir $LOGDIR
+  mkdir $LOG_DIR
 fi
 
 echo "======================" | tee -a $LOG
