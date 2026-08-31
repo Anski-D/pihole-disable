@@ -1,6 +1,9 @@
 [project]
 name = "pihole-disable"
-version = "2026.08.27dev1"
+description = "A simple-to-use web interface for temporarily disabling a local Pi-hole network DNS blocker."
+dynamic = ["version"]
+license="MIT"
+license-files = ["LICEN[CS]E*"]
 requires-python = ">=3.11"
 dependencies = [
     "hypercorn>=0.18.0",
@@ -27,5 +30,8 @@ test = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.12.6,<0.13"]
-build-backend = "uv_build"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
