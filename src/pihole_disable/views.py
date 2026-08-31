@@ -1,4 +1,4 @@
-from quart import redirect, render_template, request, url_for
+from quart import Response, redirect, render_template, request, url_for
 
 from pihole_disable.main import API_PASSWORD, API_URL, app
 from pihole_disable.pihole_control import (
@@ -25,7 +25,7 @@ async def index():
 
 @app.route("/enable")
 @app.route("/enable/<_client>")
-async def enable(_client: str = ""):
+async def enable(_client: str = "") -> Response:
     if _client:
         await pihole_controller.enable_client(_client)
     else:
@@ -37,7 +37,7 @@ async def enable(_client: str = ""):
 @app.route("/disable", methods=("POST", "GET"))
 @app.route("/disable/<int:period>")
 @app.route("/disable/<int:period>/<_client>")
-async def disable(period: int = 0, _client: str = "") -> None:
+async def disable(period: int = 0, _client: str = "") -> Response | str:
     if request.method == "POST":
         form = await request.form
         period = _clean_period_value(form["period"])
@@ -66,7 +66,7 @@ async def disable(period: int = 0, _client: str = "") -> None:
 
 
 @app.route("/status")
-def status() -> dict:
+def status() -> dict[str, bool | int]:
     return dns_manager.check_blocking()
 
 
