@@ -1,6 +1,6 @@
 [project]
 name = "pihole-disable"
-description = "A simple-to-use web interface for temporarily disabling a local Pi-hole network DNS blocker."
+description = "A simple-to-use web interface for temporarily disabling a local Pi-hole DNS blocker."
 dynamic = ["version"]
 license="MIT"
 license-files = ["LICEN[CS]E*"]
