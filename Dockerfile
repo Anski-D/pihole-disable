@@ -13,13 +13,18 @@ ENV UV_NO_DEV=1
 # for an example.
 ENV UV_PYTHON_DOWNLOADS=0
 
+RUN apt update \
+    && apt install -y git
+
 WORKDIR /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=.git,target=.git \
     uv sync --locked --no-install-project
-COPY . /app
+COPY --exclude=.git . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=.git,target=.git \
     uv sync --locked
 
 
@@ -32,7 +37,7 @@ FROM python:${PYTHON_VERSION}-slim-trixie
 # Setup a non-root user
 ARG UID=10001
 RUN groupadd --system --gid ${UID} nonroot \
- && useradd --system --gid ${UID} --uid ${UID} --create-home nonroot
+    && useradd --system --gid ${UID} --uid ${UID} --create-home nonroot
 
 # Copy the application from the builder
 COPY --from=builder --chown=nonroot:nonroot /app /app

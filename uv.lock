@@ -694,7 +694,6 @@ wheels = [
 
 [[package]]
 name = "pihole-disable"
-version = "2026.9.1"
 source = { editable = "." }
 dependencies = [
     { name = "hypercorn" },
