@@ -57,7 +57,6 @@ WORKDIR /app
 
 # Prepare a logs directory
 RUN ["mkdir", "logs"]
-#RUN chown ${UID}:${UID} logs
 RUN ["touch", ".docker"]
 
 # Run the FastAPI application by default
