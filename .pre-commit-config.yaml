@@ -27,7 +27,7 @@ repos:
     # uv version.
     rev: 0.12.6
     hooks:
-    -   id: uv-export
+    -   id: uv-lock
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.3.1
     hooks:
