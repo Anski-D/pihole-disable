@@ -4,6 +4,11 @@ description = "A simple-to-use web interface for temporarily disabling a local P
 dynamic = ["version"]
 license="MIT"
 license-files = ["LICEN[CS]E*"]
+authors = [
+    { name="Dave Anscombe", email="dave.anski@gmail.com" },
+]
+readme = "README.md"
+repository = "https://github.com/Anski-D/pihole-disable"
 requires-python = ">=3.13"
 dependencies = [
     "hypercorn>=0.18.0",
