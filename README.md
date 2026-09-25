@@ -89,7 +89,7 @@ The `Dockerfile` should not need any changes. The example `compose.yaml` can be 
 To then build the image and run the container:
 
 ```shell
-docker compose up -d
+docker compose up --build -d
 ```
 
 Alternatively, the build and running can be defined at the command line.
@@ -114,6 +114,20 @@ There are three helper scripts provided, `run_pihole-disable.sh`, `stop_pihole-d
 
 Alternatively, the app can be launched directly from the command line or a custom launch script used.
 
+## Updating
+
+To update to the latest version of the app, go to the cloned `pihole-disable` directory and run:
+
+```shell
+git pull
+```
+
+Then rebuild/relaunch the app.
+
 ## Uninstallation
 
 To remove `pihole-disable` simply stop the app running then delete the directory cloned during the installation step. For Docker installations, feel free to also delete any remaining images and volumes.
+
+## License
+
+This project uses the following license: [MIT](https://github.com/Anski-D/pihole-disable/blob/main/LICENSE)
