@@ -89,12 +89,12 @@ The `Dockerfile` should not need any changes. The example `compose.yaml` can be 
 To then build the image and run the container:
 
 ```shell
-docker compose up -d
+docker compose up --build -d
 ```
 
 Alternatively, the build and running can be defined at the command line.
 
-To shut down the container, run in the same directory as the `compose.yaml` file:
+Top shutdown the container, run in the same directory as the `compose.yaml` file:
 
 ```shell
 docker compose down

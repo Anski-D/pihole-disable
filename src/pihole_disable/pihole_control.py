@@ -272,7 +272,7 @@ class DisabledClient:
 
     async def client_disable_pihole(self, period: float) -> None:
         self._period = period  # In seconds
-        log.info(
+        log.debug(
             "Removing %s from Pihole blocking for %d seconds", self.client, self._period
         )
         self._time_start = time.monotonic()
@@ -282,7 +282,7 @@ class DisabledClient:
         self._client_manager.delete_client()
 
     def cancel_sleep(self) -> None:
-        log.info(
+        log.debug(
             "Canceling sleep for %s, %d seconds were left",
             self.client,
             self.query_remaining_period(),
@@ -326,7 +326,7 @@ class PiholeController:
             await disabled_client.client_disable_pihole(60 * period)
 
     async def increase_disable_period(self, client: str, period: float) -> None:
-        log.info("Increasing disable period for %s by %s minutes", client, period)
+        log.debug("Increasing disable period for %s by %s minutes", client, period)
         await self.disable_client(
             client, self.query_client_remaining_period(client) / 60 + period
         )
