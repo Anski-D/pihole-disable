@@ -34,6 +34,10 @@ FROM python:${PYTHON_VERSION}-slim-trixie
 # Python executable must be the same, e.g., using `python:3.11-slim-trixie`
 # will fail.
 
+# Add `curl` for health check
+RUN apt update \
+    && apt install -y curl
+
 # Setup a non-root user
 ARG UID=10001
 RUN groupadd --system --gid ${UID} nonroot \
@@ -59,5 +63,8 @@ WORKDIR /app
 RUN ["mkdir", "logs"]
 RUN ["touch", ".docker"]
 
-# Run the FastAPI application by default
+# Health check
+HEALTHCHECK CMD curl -f http://localhost:8888 || exit 1
+
+# Run the app
 CMD ["hypercorn", "pihole_disable.main:app", "-b", "0.0.0.0:8888"]
