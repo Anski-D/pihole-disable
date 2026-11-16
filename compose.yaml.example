@@ -7,7 +7,7 @@ services:
     # Change the first number to the port you wish to use on the host machine
       - '5000:8888'
     env_file: .env
-    # Uncomment the following lines is persistent logs in a Docker volume are wanted
+    # Uncomment the following lines if persistent logs in a Docker volume are wanted
 #    volumes:
 #      - logs:/app/logs
     restart: unless-stopped
