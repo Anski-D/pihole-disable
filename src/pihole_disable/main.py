@@ -20,7 +20,9 @@ def _setup_logging() -> logging.Logger:
 
     logging.config.dictConfig(config)
 
-    return logging.getLogger(__package__)
+    return logging.getLogger(
+        getattr(__spec__, "parent", None) or Path(__file__).parent.name
+    )
 
 
 log = _setup_logging()
